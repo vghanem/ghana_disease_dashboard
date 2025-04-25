@@ -3,9 +3,6 @@ import pandas as pd
 import plotly.express as px
 import folium
 from streamlit_folium import st_folium
-import seaborn as sns
-import matplotlib.pyplot as plt
-import branca
 import json
 
 # Mapping for new to old regions
@@ -84,9 +81,9 @@ selected_date = st.sidebar.date_input("Select Date", min_value=min_date, max_val
 
 # Slices
 df_time = df[(df['region'].isin(selected_region)) &
-             (df['date'].dt.date >= date_range[0]) &
+             (df['date'].dt.date >= date_range[0]) & 
              (df['date'].dt.date <= date_range[1])]
-df_single = df[(df['region'].isin(selected_region)) &
+df_single = df[(df['region'].isin(selected_region)) & 
                (df['date'].dt.date == selected_date)]
 
 # Header
@@ -111,6 +108,8 @@ if latest.empty:
     st.warning("No regional data available for the selected date. Please adjust filters.")
 else:
     m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
+    
+    # Create choropleth with proper tooltip integration
     folium.Choropleth(
         geo_data=geojson_data,
         data=latest,
@@ -120,12 +119,16 @@ else:
         fill_opacity=0.7,
         line_opacity=0.2,
         legend_name=selected_disease.replace('_',' ').title(),
-        nan_fill_color='gray'
+        nan_fill_color='gray',
+        tooltip=folium.GeoJsonTooltip(
+            fields=['shapeName', selected_disease],
+            aliases=['Region', selected_disease.replace('_',' ').title()]
+        )
     ).add_to(m)
-    folium.GeoJsonTooltip(fields=['shapeName']).add_to(m)
+    
     st_folium(m, width=700, height=500)
 
-# Section 3: Behavioral & Demographic Correlation Behavioral & Demographic Correlation
+# Section 3: Behavioral & Demographic Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
 selected_var = st.selectbox("Choose variable", ['education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate'])
 fig2 = px.scatter(df_single, x=selected_var, y=selected_disease, color='region')
