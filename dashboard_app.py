@@ -80,7 +80,7 @@ st.markdown("---")
 st.subheader("1. National Disease Trends Over Time")
 fig = px.line(filtered_df, x='date', y=selected_disease, color='region',
               title=f"{selected_disease.replace('_', ' ').title()} Over Time")
-fig.update_layout(height=600)
+fig.update_layout(height=800)
 st.plotly_chart(fig, use_container_width=True)
 
 # Section 2: Regional Distribution Map
@@ -113,17 +113,18 @@ fig2 = px.scatter(filtered_df, x=selected_var, y=selected_disease, color='region
                   title=f"{selected_var.replace('_', ' ').title()} vs. {selected_disease.replace('_', ' ').title()}")
 st.plotly_chart(fig2, use_container_width=True)
 
-# Section 4: Forecasts
+# Section 4: Forecasts (National Level)
 st.subheader("4. ML Forecasting Results")
-st.markdown("🧠 Forecasted HIV Incidence to 2030 using Machine Learning")
+st.markdown("🧠 Forecasted National HIV Incidence to 2030 using Machine Learning")
 
-forecast_df_filtered = forecast_df[forecast_df['region'].isin(selected_region)]
-if not forecast_df_filtered.empty and {'year', 'hiv_predicted', 'region'}.issubset(forecast_df_filtered.columns):
-    fig3 = px.line(forecast_df_filtered, x="year", y="hiv_predicted", color="region",
-                   title="Forecasted HIV Incidence to 2030")
+required_columns = {'year', 'hiv_predicted'}
+if required_columns.issubset(forecast_df.columns):
+    fig3 = px.line(forecast_df, x="year", y="hiv_predicted",
+                   title="Forecasted National HIV Incidence to 2030")
+    fig3.update_layout(height=500)
     st.plotly_chart(fig3, use_container_width=True)
 else:
-    st.warning("No forecast data available or columns missing for selected regions.")
+    st.warning("Forecast data is unavailable or missing required columns.")
 
 # Performance table
 st.markdown("##### Model Performance Summary")
