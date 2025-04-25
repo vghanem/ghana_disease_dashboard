@@ -56,6 +56,7 @@ def load_forecast():
 def load_metrics():
     # Preprocess the metrics CSV file
     metrics = []
+    current_model = None
     with open("model_performance_metrics.csv", "r") as f:
         for line in f:
             if line.strip():  # Check if the line is not empty
@@ -64,10 +65,12 @@ def load_metrics():
                     key, value = parts
                     if key == "Model":
                         current_model = value
-                        current_entry = {"model": current_model}
                     else:
-                        current_entry[key.lower()] = value
-                        metrics.append(current_entry)
+                        metrics.append({
+                            "model": current_model,
+                            "metric": key.lower(),
+                            "value": value
+                        })
     # Convert the list of dictionaries to a DataFrame
     metrics_df = pd.DataFrame(metrics)
     # Pivot the DataFrame to have models as rows and metrics as columns
