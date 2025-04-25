@@ -70,37 +70,7 @@ def load_forecast():
 
 @st.cache_data
 def load_metrics():
-    try:
-        metrics = []
-        with open("model_performance_metrics.csv", "r") as f:
-            for line in f:
-                if line.strip():  # Check if the line is not empty
-                    parts = line.strip().split(": ")
-                    if len(parts) == 2:
-                        key, value = parts
-                        if key == "Model":
-                            current_model = value
-                            current_entry = {"model": current_model}
-                        else:
-                            current_entry[key.lower()] = value
-                            metrics.append(current_entry)
-        metrics_df = pd.DataFrame(metrics)
-        
-        # Strip any leading/trailing whitespace characters from column names
-        metrics_df.columns = metrics_df.columns.str.strip()
-        
-        # Check if 'model' column exists
-        if 'model' not in metrics_df.columns:
-            st.error("The 'model' column is missing in the metrics data.")
-            st.stop()
-        
-        # Pivot the DataFrame to have models as rows and metrics as columns
-        metrics_df = metrics_df.pivot(index='model', columns='metric', values='value')
-        metrics_df = metrics_df.apply(pd.to_numeric, errors='ignore')
-        return metrics_df.reset_index()
-    except Exception as e:
-        st.error(f"Error loading metrics: {str(e)}")
-        st.stop()
+    return pd.read_csv("model_performance_metrics.csv")
 
 def create_choropleth(data, geojson, selected_disease):
     """Create Folium choropleth map with enhanced styling"""
@@ -177,6 +147,48 @@ def main():
         ['hiv_incidence', 'malaria_incidence', 'tb_incidence']
     )
     
-   
+    # Date selection with validation
+    min_date = df['date'].min().date()
+    max_date = df['date'].max().date()
+    selected_date = st.sidebar.date_input(
+        "Reference Date", 
+        value=max_date,
+        min_value=min_date,
+        max_value=max_date
+    )
+    
+    # Data processing
+    current_data = df[(
+        df['region'].isin(selected_regions)) & 
+        (df['date'].dt.date == selected_date)
+    ]
+    
+    # Main display
+    st.title("🇬🇭 Ghana Infectious Disease Surveillance")
+    st.markdown("### Integrated Epidemiology Dashboard")
+    st.markdown("---")
+    
+    # Section 1: Temporal Trends
+    with st.expander("Temporal Disease Progression", expanded=True):
+        if not df.empty:
+            fig = px.line(
+                df[df['region'].isin(selected_regions)], 
+                x='date', 
+                y=selected_disease, 
+                color='region',
+                labels={'date': 'Timeline', selected_disease: 'Cases per 100k'},
+                height=500,
+                line_shape="spline"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("No data available for selected filters")
+    
+    # Section 2: Geospatial Analysis
+    with st.expander("Regional Disease Distribution", expanded=True):
+        # Prepare choropleth data
+        choropleth_data = current_data.groupby('region', as_index=False)[selected_disease].mean()
+        choropleth_data.columns = ['Region', 'Value']
+
 ::contentReference[oaicite:0]{index=0}
  
