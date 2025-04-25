@@ -28,7 +28,6 @@ def load_main_data():
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson", "r") as f:
         gj = json.load(f)
-        # Apply region remapping to GeoJSON
         for feature in gj["features"]:
             name = feature["properties"]["shapeName"]
             if name in region_mapping:
@@ -51,7 +50,7 @@ geojson_data = load_geojson()
 forecast_df = load_forecast()
 metrics_df = load_metrics()
 
-# Sidebar
+# Sidebar filters
 st.sidebar.header("Filter Panel")
 
 # Select All Regions
@@ -64,11 +63,7 @@ else:
 
 # Select All Diseases
 disease_options = ['hiv_incidence', 'malaria_incidence', 'tb_incidence']
-select_all_diseases = st.sidebar.checkbox("Select all diseases", value=True)
-if select_all_diseases:
-    selected_disease = st.sidebar.selectbox("Disease", disease_options, index=0)
-else:
-    selected_disease = st.sidebar.selectbox("Disease", disease_options)
+selected_disease = st.sidebar.selectbox("Disease", disease_options)
 
 date_range = st.sidebar.date_input("Date Range", [df['date'].min(), df['date'].max()])
 
@@ -77,9 +72,10 @@ filtered_df = df[(df['region'].isin(selected_region)) &
                  (df['date'] >= pd.to_datetime(date_range[0])) &
                  (df['date'] <= pd.to_datetime(date_range[1]))]
 
-# Page Title
+# Page Title and Branding
 st.title("📈 Ghana Infectious Disease Trends Dashboard")
 st.markdown("#### Machine Learning-Powered Epidemiology | HIV/AIDS Focus")
+st.markdown("---")
 
 # Section 1: Trend Chart
 st.subheader("1. National Disease Trends Over Time")
@@ -125,8 +121,6 @@ with col2:
 st.subheader("4. ML Forecasting Results")
 st.markdown("🧠 Forecasted HIV Incidence to 2030 using Machine Learning")
 
-# Forecast line chart
-st.markdown("##### Forecasted HIV Incidence (Selected Regions)")
 forecast_df_filtered = forecast_df[forecast_df['region'].isin(selected_region)]
 if not forecast_df_filtered.empty:
     fig3 = px.line(forecast_df_filtered, x="year", y="hiv_predicted", color="region",
@@ -137,6 +131,8 @@ else:
 
 # Performance table
 st.markdown("##### Model Performance Summary")
-st.dataframe(metrics_df, use
-::contentReference[oaicite:0]{index=0}
- 
+st.dataframe(metrics_df, use_container_width=True)
+
+# Footer
+st.markdown("---")
+st.markdown("*Developed by Valentine Ghanem | MSc Data Science & Public Health | Ghana Cocoa Board*")
