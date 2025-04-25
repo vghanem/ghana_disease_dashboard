@@ -185,10 +185,6 @@ def main():
             st.warning("No data available for selected filters")
     
     # Section 2: Geospatial Analysis
-    with st.expander("Regional Disease Distribution", expanded=True):
-        # Prepare choropleth data
-        choropleth_data = current_data.groupby('region', as_index=False)[selected_disease].mean()
-        choropleth_data.columns = ['Region', 'Value']
-
+    with st.expander("Regional Disease Distribution", expanded=True
 ::contentReference[oaicite:0]{index=0}
  
