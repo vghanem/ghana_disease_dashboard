@@ -34,19 +34,43 @@ st.subheader("1. National Disease Trends Over Time")
 fig = px.line(filtered_df, x='date', y=selected_disease, color='region', title=f"{selected_disease.replace('_', ' ').title()} Over Time")
 st.plotly_chart(fig, use_container_width=True)
 
-st.subheader("2. Regional Distribution Map")
-m = folium.Map(location=[7.9, -1.0], zoom_start=6)
-for _, row in filtered_df.groupby('region').tail(1).iterrows():
-    folium.CircleMarker(
-        location=[row['latitude'], row['longitude']],
-        radius=10,
-        color='red',
-        fill=True,
-        fill_opacity=0.6,
-        popup=f"{row['region']}<br>{selected_disease}: {row[selected_disease]:.1f}"
-    ).add_to(m)
+import json
 
-st_data = st_folium(m, width=700)
+st.subheader("2. Regional Distribution Map (GeoJSON Choropleth)")
+
+# Load geoJSON
+with open("geoBoundaries-GHA-ADM1_simplified.geojson", "r") as f:
+    geojson_data = json.load(f)
+
+# Prepare latest value per region for selected disease
+latest_df = filtered_df.sort_values('date').groupby('region').tail(1)
+
+# Rename for consistency (if necessary)
+latest_df = latest_df.rename(columns={"region": "Region"})
+
+# Create Folium Map
+m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
+
+# Choropleth layer
+choropleth = folium.Choropleth(
+    geo_data=geojson_data,
+    data=latest_df,
+    columns=["Region", selected_disease],
+    key_on="feature.properties.shapeName",
+    fill_color="YlOrRd",
+    fill_opacity=0.7,
+    line_opacity=0.2,
+    legend_name=selected_disease.replace("_", " ").title(),
+    nan_fill_color="gray"
+)
+choropleth.add_to(m)
+
+# Add interactivity with tooltips
+folium.GeoJsonTooltip(fields=["shapeName"]).add_to(choropleth.geojson)
+
+# Render the map in Streamlit
+st_folium(m, width=700, height=500)
+
 
 st.subheader("3. Behavioral & Demographic Correlation")
 selected_var = st.selectbox("Choose variable to compare with incidence:", 
