@@ -9,7 +9,7 @@ import branca
 import json
 
 # Mapping for new to old regions
-egion_mapping = {
+region_mappingegion_mapping = {
     'Ahafo': 'Brong-Ahafo',
     'Bono': 'Brong-Ahafo',
     'Bono East': 'Brong-Ahafo',
