@@ -1,0 +1,5 @@
+Model,RMSE,R2,MAE,MAPE
+Ridge Regression,9.0802,0.964,6.6865,0.0369
+Random Forest Regressor,6.3937,0.9821,4.6401,0.0256
+XGBoost Regressor,6.5393,0.9813,4.7674,0.0264
+Support Vector Regressor,8.4746,0.9686,5.9004,0.0317
