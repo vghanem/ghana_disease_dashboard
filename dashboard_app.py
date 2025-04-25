@@ -9,7 +9,7 @@ import branca
 import json
 
 # Mapping for new to old regions
-region_mappingegion_mapping = {
+region_mapping = {
     'Ahafo': 'Brong-Ahafo',
     'Bono': 'Brong-Ahafo',
     'Bono East': 'Brong-Ahafo',
@@ -25,7 +25,8 @@ original_regions = [
     'ASHANTI', 'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA'
 ]
 
-# Load main dataset\ @st.cache_data
+# Load main dataset
+@st.cache_data
 def load_main_data():
     df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
@@ -134,9 +135,9 @@ st.plotly_chart(fig2, use_container_width=True)
 st.subheader("4. Correlation Heatmap")
 num_cols = ['hiv_incidence','malaria_incidence','tb_incidence','education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate']
 corr = df_time[num_cols].corr()
-fig_hm, ax = plt.subplots(figsize=(8,6))
-sns.heatmap(corr, annot=True, fmt='.2f', cmap='viridis', ax=ax)
-st.pyplot(fig_hm)
+fig_hm = px.imshow(corr, text_auto=True, aspect="auto", title="Correlation Matrix",
+                   labels=dict(color="Correlation"), x=corr.columns, y=corr.columns)
+st.plotly_chart(fig_hm, use_container_width=True)
 
 # Section 5: ML Forecast (National)
 st.subheader("5. ML Forecasting (National)")
@@ -156,9 +157,9 @@ st.subheader("7. Model Metrics Correlation Heatmap")
 metrics_numeric = metrics_df.select_dtypes(include='number')
 if not metrics_numeric.empty:
     corr_m = metrics_numeric.corr()
-    fig_mm, ax_mm = plt.subplots(figsize=(8,6))
-    sns.heatmap(corr_m, annot=True, fmt='.2f', cmap='coolwarm', ax=ax_mm)
-    st.pyplot(fig_mm)
+    fig_mm = px.imshow(corr_m, text_auto=True, aspect="auto", title="Model Metric Correlation",
+                       labels=dict(color="Correlation"), x=corr_m.columns, y=corr_m.columns)
+    st.plotly_chart(fig_mm, use_container_width=True)
 else:
     st.warning("No numeric metrics to correlate.")
 
