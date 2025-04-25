@@ -73,10 +73,15 @@ def load_metrics():
                         })
     # Convert the list of dictionaries to a DataFrame
     metrics_df = pd.DataFrame(metrics)
-    # Pivot the DataFrame to have models as rows and metrics as columns
-    metrics_df = metrics_df.pivot(index='model', columns='metric', values='value')
-    # Convert metric values to numeric types
-    metrics_df = metrics_df.apply(pd.to_numeric, errors='ignore')
+    # Check if the DataFrame is not empty before pivoting
+    if not metrics_df.empty:
+        # Pivot the DataFrame to have models as rows and metrics as columns
+        metrics_df = metrics_df.pivot(index='model', columns='metric', values='value')
+        # Convert metric values to numeric types
+        metrics_df = metrics_df.apply(pd.to_numeric, errors='ignore')
+    else:
+        # Create an empty DataFrame with the expected structure if no data is found
+        metrics_df = pd.DataFrame(columns=['model', 'rmse', 'r2', 'mae', 'mape'])
     return metrics_df.reset_index()
 
 # Data loading
@@ -173,12 +178,15 @@ st.dataframe(metrics_df, use_container_width=True)
 # Section 7: Model Metrics Correlation Heatmap
 st.subheader("7. Machine Learning Model Performance Heatmap")
 
-model_metrics = metrics_df.set_index('model')
-fig_mm = px.imshow(model_metrics, text_auto=True, aspect="auto", 
-                  title="ML Model Performance Metrics",
-                  labels=dict(color="Score"), x=model_metrics.columns, y=model_metrics.index)
-fig_mm.update_layout(height=500)
-st.plotly_chart(fig_mm, use_container_width=True)
+if not metrics_df.empty and 'model' in metrics_df.columns:
+    model_metrics = metrics_df.set_index('model')
+    fig_mm = px.imshow(model_metrics, text_auto=True, aspect="auto", 
+                      title="ML Model Performance Metrics",
+                      labels=dict(color="Score"), x=model_metrics.columns, y=model_metrics.index)
+    fig_mm.update_layout(height=500)
+    st.plotly_chart(fig_mm, use_container_width=True)
+else:
+    st.warning("No model metrics data available for visualization.")
 
 # Footer
 st.markdown("---")
