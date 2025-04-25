@@ -54,7 +54,27 @@ def load_forecast():
 
 @st.cache_data
 def load_metrics():
-    return pd.read_csv("model_performance_metrics.csv")
+    # Preprocess the metrics CSV file
+    metrics = []
+    with open("model_performance_metrics.csv", "r") as f:
+        for line in f:
+            if line.strip():  # Check if the line is not empty
+                parts = line.strip().split(": ")
+                if len(parts) == 2:
+                    key, value = parts
+                    if key == "Model":
+                        current_model = value
+                        current_entry = {"model": current_model}
+                    else:
+                        current_entry[key.lower()] = value
+                        metrics.append(current_entry)
+    # Convert the list of dictionaries to a DataFrame
+    metrics_df = pd.DataFrame(metrics)
+    # Pivot the DataFrame to have models as rows and metrics as columns
+    metrics_df = metrics_df.pivot(index='model', columns='metric', values='value')
+    # Convert metric values to numeric types
+    metrics_df = metrics_df.apply(pd.to_numeric, errors='ignore')
+    return metrics_df.reset_index()
 
 # Data loading
 df = load_main_data()
@@ -149,6 +169,7 @@ st.dataframe(metrics_df, use_container_width=True)
 
 # Section 7: Model Metrics Correlation Heatmap
 st.subheader("7. Machine Learning Model Performance Heatmap")
+
 model_metrics = metrics_df.set_index('model')
 fig_mm = px.imshow(model_metrics, text_auto=True, aspect="auto", 
                   title="ML Model Performance Metrics",
