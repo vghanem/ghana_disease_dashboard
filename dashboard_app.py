@@ -5,37 +5,42 @@ import folium
 from streamlit_folium import st_folium
 import json
 
-# Load main dataset
+# Mapping for new to old regions
+region_mapping = {
+    'Ahafo': 'Brong-Ahafo',
+    'Bono': 'Brong-Ahafo',
+    'Bono East': 'Brong-Ahafo',
+    'Savannah': 'Northern',
+    'North East': 'Northern',
+    'Western North': 'Western',
+    'Oti': 'Volta'
+}
+
+# Load datasets
 @st.cache_data
 def load_main_data():
     df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
-
-    # Normalize to 10 original Ghana regions (pre-2018 structure)
-    region_mapping = {
-        'Ahafo': 'Brong-Ahafo',
-        'Bono': 'Brong-Ahafo',
-        'Bono East': 'Brong-Ahafo',
-        'Savannah': 'Northern',
-        'North East': 'Northern',
-        'Western North': 'Western',
-        'Oti': 'Volta'
-    }
     df['region'] = df['region'].replace(region_mapping)
     return df
 
-# Load GeoJSON
 @st.cache_data
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson", "r") as f:
-        return json.load(f)
+        gj = json.load(f)
+        # Apply region remapping to GeoJSON
+        for feature in gj["features"]:
+            name = feature["properties"]["shapeName"]
+            if name in region_mapping:
+                feature["properties"]["shapeName"] = region_mapping[name]
+        return gj
 
-# Load ML forecast results
 @st.cache_data
 def load_forecast():
-    return pd.read_csv("hiv_predicted_2030_by_region.csv")
+    df = pd.read_csv("hiv_predicted_2030_by_region.csv")
+    df['region'] = df['region'].replace(region_mapping)
+    return df
 
-# Load model performance metrics
 @st.cache_data
 def load_metrics():
     return pd.read_csv("model_performance_metrics.csv")
@@ -46,33 +51,32 @@ geojson_data = load_geojson()
 forecast_df = load_forecast()
 metrics_df = load_metrics()
 
-# Sidebar filters
+# Sidebar
 st.sidebar.header("Filter Panel")
 selected_region = st.sidebar.multiselect("Select Region(s):", df['region'].unique(), default=df['region'].unique())
 selected_disease = st.sidebar.selectbox("Disease", ['hiv_incidence', 'malaria_incidence', 'tb_incidence'])
 date_range = st.sidebar.date_input("Date Range", [df['date'].min(), df['date'].max()])
 
-# Filter dataset
-filtered_df = df[(df['region'].isin(selected_region)) & 
-                 (df['date'] >= pd.to_datetime(date_range[0])) & 
+# Filtered dataset
+filtered_df = df[(df['region'].isin(selected_region)) &
+                 (df['date'] >= pd.to_datetime(date_range[0])) &
                  (df['date'] <= pd.to_datetime(date_range[1]))]
 
-# Main Title
+# Page Title
 st.title("📈 Ghana Infectious Disease Trends Dashboard")
 st.markdown("#### Machine Learning-Powered Epidemiology | HIV/AIDS Focus")
 
-# Section 1: Time Series Line Chart
+# Section 1: Trend Chart
 st.subheader("1. National Disease Trends Over Time")
 fig = px.line(filtered_df, x='date', y=selected_disease, color='region', title=f"{selected_disease.replace('_', ' ').title()} Over Time")
 st.plotly_chart(fig, use_container_width=True)
 
-# Section 2: Regional Distribution Map using GeoJSON (10 Regions Corrected)
+# Section 2: Map Choropleth (10 original regions)
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 latest_df = filtered_df.sort_values('date').groupby('region').tail(1)
 latest_df = latest_df.rename(columns={"region": "Region"})
 
 m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
-
 choropleth = folium.Choropleth(
     geo_data=geojson_data,
     data=latest_df,
@@ -88,7 +92,7 @@ choropleth.add_to(m)
 folium.GeoJsonTooltip(fields=["shapeName"]).add_to(choropleth.geojson)
 st_folium(m, width=700, height=500)
 
-# Section 3: Behavioral & Demographic Correlation
+# Section 3: Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
 selected_var = st.selectbox("Choose variable to compare with incidence:", 
                             ['education_access_index', 'condom_use_rate', 'urbanization_level', 
@@ -97,16 +101,19 @@ fig2 = px.scatter(filtered_df, x=selected_var, y=selected_disease, color='region
                   title=f"{selected_var.replace('_', ' ').title()} vs. {selected_disease.replace('_', ' ').title()}")
 st.plotly_chart(fig2, use_container_width=True)
 
-# Section 4: ML Forecasting Results
+# Section 4: Forecasts
 st.subheader("4. ML Forecasting Results")
-st.markdown("🧠 Machine Learning forecasts of HIV/AIDS incidence by region (to 2030)")
+st.markdown("🧠 Forecasted HIV Incidence to 2030 using Machine Learning")
 
-# Forecast Line Plot
+# Forecast line chart
 st.markdown("##### Forecasted HIV Incidence (Selected Regions)")
 forecast_df_filtered = forecast_df[forecast_df['region'].isin(selected_region)]
-fig3 = px.line(forecast_df_filtered, x="year", y="hiv_predicted", color="region", title="Forecasted HIV Incidence to 2030")
-st.plotly_chart(fig3, use_container_width=True)
+if not forecast_df_filtered.empty:
+    fig3 = px.line(forecast_df_filtered, x="year", y="hiv_predicted", color="region", title="Forecasted HIV Incidence to 2030")
+    st.plotly_chart(fig3, use_container_width=True)
+else:
+    st.warning("No forecast data available for selected regions.")
 
-# Model Performance Table
+# Performance table
 st.markdown("##### Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
