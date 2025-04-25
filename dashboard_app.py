@@ -64,12 +64,25 @@ metrics_df = load_metrics()
 st.sidebar.header("Filter Panel")
 all_regions = df['region'].unique().tolist()
 select_all = st.sidebar.checkbox("Select all regions", True)
-selected_region = st.sidebar.multiselect("Regions", all_regions, default=all_regions if select_all else [])
+selected_region = st.sidebar.multiselect(
+    "Regions", all_regions,
+    default=all_regions if select_all else []
+)
 disease_opts = ['hiv_incidence', 'malaria_incidence', 'tb_incidence']
 selected_disease = st.sidebar.selectbox("Disease", disease_opts)
-min_date, max_date = df['date'].min(), df['date'].max()
-selected_date = st.sidebar.slider("Select Date", min_date, max_date, min_date)
 
+# Date selector using native Python date
+min_date = df['date'].min().date()
+max_date = df['date'].max().date()
+selected_date = st.sidebar.date_input(
+    "Select Date", min_value=min_date, max_value=max_date, value=min_date
+)
+
+# Filter df
+filtered_df = df[
+    (df['region'].isin(selected_region)) &
+    (df['date'].dt.date == selected_date)
+]
 # Filter df
 filtered_df = df[(df['region'].isin(selected_region)) & (df['date'] == selected_date)]
 
