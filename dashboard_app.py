@@ -66,16 +66,22 @@ metrics_df = load_metrics()
 st.sidebar.header("Filter Panel")
 # Regions
 all_regions = df['region'].unique().tolist()
-select_all = st.sidebar.checkbox("Select all regions", True)
+select_all_regions = st.sidebar.checkbox("Select all regions", True)
 selected_region = st.sidebar.multiselect(
-    "Regions", all_regions, default=all_regions if select_all else []
+    "Regions", all_regions, default=all_regions if select_all_regions else []
 )
-# Disease
+
+# Disease with select all
 disease_opts = ['hiv_incidence', 'malaria_incidence', 'tb_incidence']
-selected_disease = st.sidebar.selectbox("Disease", disease_opts)
-# Date range for trend
+select_all_diseases = st.sidebar.checkbox("Select all diseases", True)
+selected_disease = st.sidebar.multiselect(
+    "Disease", disease_opts, default=disease_opts if select_all_diseases else []
+)
+
+# Date range
 min_date, max_date = df['date'].min().date(), df['date'].max().date()
 date_range = st.sidebar.date_input("Date Range", [min_date, max_date])
+
 # Single date for map/scatter
 selected_date = st.sidebar.date_input("Select Date", min_value=min_date, max_value=max_date, value=min_date)
 
@@ -93,9 +99,12 @@ st.markdown("---")
 
 # Section 1: Time Series
 st.subheader("1. National Disease Trends Over Time")
-fig1 = px.line(df_time, x='date', y=selected_disease, color='region')
-fig1.update_layout(width=1200, height=600)
-st.plotly_chart(fig1, use_container_width=True)
+if selected_disease:
+    fig1 = px.line(df_time, x='date', y=selected_disease, color='region')
+    fig1.update_layout(width=1200, height=600)
+    st.plotly_chart(fig1, use_container_width=True)
+else:
+    st.warning("Please select at least one disease to display trends.")
 
 # Section 2: Choropleth Map (10 Original Regions)
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
@@ -113,16 +122,16 @@ else:
     folium.Choropleth(
         geo_data=geojson_data,
         data=latest,
-        columns=['Region', selected_disease],
+        columns=['Region', selected_disease[0] if selected_disease else ''],
         key_on='feature.properties.shapeName',
         fill_color='YlGnBu',
         fill_opacity=0.7,
         line_opacity=0.2,
-        legend_name=selected_disease.replace('_',' ').title(),
+        legend_name=(selected_disease[0].replace('_',' ').title() if selected_disease else 'Disease Incidence'),
         nan_fill_color='gray',
         tooltip=folium.GeoJsonTooltip(
-            fields=['shapeName', selected_disease],
-            aliases=['Region', selected_disease.replace('_',' ').title()]
+            fields=['shapeName', (selected_disease[0] if selected_disease else '')],
+            aliases=['Region', (selected_disease[0].replace('_',' ').title() if selected_disease else 'Disease Incidence')]
         )
     ).add_to(m)
     
@@ -130,9 +139,12 @@ else:
 
 # Section 3: Behavioral & Demographic Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
-selected_var = st.selectbox("Choose variable", ['education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate'])
-fig2 = px.scatter(df_single, x=selected_var, y=selected_disease, color='region')
-st.plotly_chart(fig2, use_container_width=True)
+if selected_disease and not df_single.empty:
+    selected_var = st.selectbox("Choose variable", ['education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate'])
+    fig2 = px.scatter(df_single, x=selected_var, y=selected_disease[0], color='region')
+    st.plotly_chart(fig2, use_container_width=True)
+else:
+    st.warning("Please select at least one disease and ensure data is available for the selected date.")
 
 # Section 4: Correlation Heatmap (Enlarged)
 st.subheader("4. Correlation Heatmap")
@@ -140,8 +152,8 @@ num_cols = ['hiv_incidence','malaria_incidence','tb_incidence','education_access
 corr = df_time[num_cols].corr()
 fig_hm = px.imshow(corr, text_auto=True, aspect="auto", title="Correlation Matrix",
                    labels=dict(color="Correlation"), x=corr.columns, y=corr.columns)
-fig_hm.update_layout(height=600)  # Enlarged height
-st.plotly_chart(fig_hm, use_container_width=True)
+fig_hm.update_layout(height=800, width=800)  # Enlarged dimensions
+st.plotly_chart(fig_hm, use_container_width=False)
 
 # Section 6: Model Performance
 st.subheader("6. Model Performance Summary")
