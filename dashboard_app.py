@@ -82,15 +82,18 @@ selected_disease = st.sidebar.multiselect(
 min_date, max_date = df['date'].min().date(), df['date'].max().date()
 date_range = st.sidebar.date_input("Date Range", [min_date, max_date])
 
-# Single date for map/scatter
-selected_date = st.sidebar.date_input("Select Date", min_value=min_date, max_value=max_date, value=min_date)
-
 # Slices
 df_time = df[(df['region'].isin(selected_region)) &
              (df['date'].dt.date >= date_range[0]) & 
              (df['date'].dt.date <= date_range[1])]
 df_single = df[(df['region'].isin(selected_region)) & 
-               (df['date'].dt.date == selected_date)]
+               (df['date'].dt.date >= date_range[0]) & 
+               (df['date'].dt.date <= date_range[1])]
+
+# Get the latest date within the selected range for the map
+if not df_single.empty:
+    selected_date = df_single['date'].max().date()
+    df_single = df_single[df_single['date'].dt.date == selected_date]
 
 # Header
 st.title("📈 Ghana Infectious Disease Trends Dashboard")
@@ -110,32 +113,35 @@ else:
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
 # Prepare latest data for the selected date
-latest = df_single.groupby('region').last().reset_index().rename(columns={'region':'Region'})
+if not df_single.empty:
+    latest = df_single.groupby('region').last().reset_index().rename(columns={'region':'Region'})
 
-# Guard against empty data for the map
-if latest.empty:
-    st.warning("No regional data available for the selected date. Please adjust filters.")
+    # Guard against empty data for the map
+    if not latest.empty:
+        m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
+        
+        # Create choropleth with proper tooltip integration
+        folium.Choropleth(
+            geo_data=geojson_data,
+            data=latest,
+            columns=['Region', selected_disease[0] if selected_disease else ''],
+            key_on='feature.properties.shapeName',
+            fill_color='YlGnBu',
+            fill_opacity=0.7,
+            line_opacity=0.2,
+            legend_name=(selected_disease[0].replace('_',' ').title() if selected_disease else 'Disease Incidence'),
+            nan_fill_color='gray',
+            tooltip=folium.GeoJsonTooltip(
+                fields=['shapeName', (selected_disease[0] if selected_disease else '')],
+                aliases=['Region', (selected_disease[0].replace('_',' ').title() if selected_disease else 'Disease Incidence')]
+            )
+        ).add_to(m)
+        
+        st_folium(m, width=500, height=900)
+    else:
+        st.warning("No regional data available for the selected date range. Please adjust filters.")
 else:
-    m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
-    
-    # Create choropleth with proper tooltip integration
-    folium.Choropleth(
-        geo_data=geojson_data,
-        data=latest,
-        columns=['Region', selected_disease[0] if selected_disease else ''],
-        key_on='feature.properties.shapeName',
-        fill_color='YlGnBu',
-        fill_opacity=0.7,
-        line_opacity=0.2,
-        legend_name=(selected_disease[0].replace('_',' ').title() if selected_disease else 'Disease Incidence'),
-        nan_fill_color='gray',
-        tooltip=folium.GeoJsonTooltip(
-            fields=['shapeName', (selected_disease[0] if selected_disease else '')],
-            aliases=['Region', (selected_disease[0].replace('_',' ').title() if selected_disease else 'Disease Incidence')]
-        )
-    ).add_to(m)
-    
-    st_folium(m, width=700, height=500)
+    st.warning("No data available for the selected date range. Please adjust filters.")
 
 # Section 3: Behavioral & Demographic Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
@@ -144,7 +150,7 @@ if selected_disease and not df_single.empty:
     fig2 = px.scatter(df_single, x=selected_var, y=selected_disease[0], color='region')
     st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.warning("Please select at least one disease and ensure data is available for the selected date.")
+    st.warning("Please select at least one disease and ensure data is available for the selected date range.")
 
 # Section 4: Correlation Heatmap (Enlarged)
 st.subheader("4. Correlation Heatmap")
