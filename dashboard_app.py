@@ -5,10 +5,11 @@ import folium
 from streamlit_folium import st_folium
 import seaborn as sns
 import matplotlib.pyplot as plt
+import branca
 import json
 
 # Mapping for new to old regions
-region_mapping = {
+egion_mapping = {
     'Ahafo': 'Brong-Ahafo',
     'Bono': 'Brong-Ahafo',
     'Bono East': 'Brong-Ahafo',
@@ -24,30 +25,29 @@ original_regions = [
     'ASHANTI', 'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA'
 ]
 
-# Load datasets
-@st.cache_data
+# Load main dataset\ @st.cache_data
 def load_main_data():
     df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
     df['region'] = df['region'].replace(region_mapping).str.upper()
-    # Keep only original regions
     df = df[df['region'].isin(original_regions)]
     return df
 
+# Load GeoJSON
 @st.cache_data
 def load_geojson():
-    with open("geoBoundaries-GHA-ADM1_simplified.geojson", "r") as f:
+    with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
         gj = json.load(f)
-        # Filter features to original regions
+        # filter features to original regions
         gj['features'] = [feat for feat in gj['features']
                           if feat['properties']['shapeName'].upper() in original_regions]
-        # Standardize shapeName property
+        # standardize shapeName
         for feat in gj['features']:
             name = feat['properties']['shapeName']
-            # Map if needed then uppercase
             feat['properties']['shapeName'] = region_mapping.get(name, name).upper()
         return gj
 
+# Load forecasts and metrics
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("hiv_predicted_2030_by_region.csv")
@@ -58,7 +58,7 @@ def load_forecast():
 def load_metrics():
     return pd.read_csv("model_performance_metrics.csv")
 
-# Load data
+# Data loading
 df = load_main_data()
 geojson_data = load_geojson()
 forecast_df = load_forecast()
@@ -66,109 +66,88 @@ metrics_df = load_metrics()
 
 # Sidebar filters
 st.sidebar.header("Filter Panel")
+# Regions
 all_regions = df['region'].unique().tolist()
 select_all = st.sidebar.checkbox("Select all regions", True)
 selected_region = st.sidebar.multiselect(
-    "Regions", all_regions,
-    default=all_regions if select_all else []
+    "Regions", all_regions, default=all_regions if select_all else []
 )
-
+# Disease
 disease_opts = ['hiv_incidence', 'malaria_incidence', 'tb_incidence']
 selected_disease = st.sidebar.selectbox("Disease", disease_opts)
+# Date range for trend
+min_date, max_date = df['date'].min().date(), df['date'].max().date()
+date_range = st.sidebar.date_input("Date Range", [min_date, max_date])
+# Single date for map/scatter
+selected_date = st.sidebar.date_input("Select Date", min_value=min_date, max_value=max_date, value=min_date)
 
-# Date filters
-min_date = df['date'].dt.date.min()
-max_date = df['date'].dt.date.max()
-# Date range for trends
-date_range = st.sidebar.date_input(
-    "Select Date Range", [min_date, max_date]
-)
-# Single date for map and scatter
-selected_date = st.sidebar.date_input(
-    "Select Date for Map/Scatter", min_value=min_date,
-    max_value=max_date, value=min_date
-)
-
-# Data slices
-# For time series and heatmap (range)
+# Slices
 df_time = df[(df['region'].isin(selected_region)) &
              (df['date'].dt.date >= date_range[0]) &
              (df['date'].dt.date <= date_range[1])]
-# For map and scatter (single date)
 df_single = df[(df['region'].isin(selected_region)) &
                (df['date'].dt.date == selected_date)]
 
-# Title and branding
+# Header
 st.title("📈 Ghana Infectious Disease Trends Dashboard")
 st.markdown("#### Machine Learning-Powered Epidemiology | HIV/AIDS Focus")
 st.markdown("---")
 
-# Section 1: Time Series (uses df_time)
+# Section 1: Time Series
 st.subheader("1. National Disease Trends Over Time")
-fig1 = px.line(
-    df_time, x='date', y=selected_disease, color='region',
-    title="Trends Over Time"
-)
+fig1 = px.line(df_time, x='date', y=selected_disease, color='region')
 fig1.update_layout(width=1200, height=600)
 st.plotly_chart(fig1, use_container_width=True)
 
-# Section 2: Choropleth Map (uses df_single)
+# Section 2: Choropleth Map (10 Original Regions)
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
+
+# Prepare latest data for the selected date
 latest = df_single.groupby('region').last().reset_index().rename(columns={'region':'Region'})
 
-m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
-folium.Choropleth(
-    geo_data=geojson_data,
-    data=latest,
-    columns=['Region', selected_disease],
-    key_on='feature.properties.shapeName',
-    fill_color='YlGnBu',
-    fill_opacity=0.7,
-    line_opacity=0.2,
-    legend_name=selected_disease.replace('_',' ').title(),
-    nan_fill_color='gray'
-).add_to(m)
-folium.GeoJsonTooltip(fields=['shapeName']).add_to(m)
-st_folium(m, width=700, height=500)
+# Guard against empty data for the map
+if latest.empty:
+    st.warning("No regional data available for the selected date. Please adjust filters.")
+else:
+    m = folium.Map(location=[7.9, -1.0], zoom_start=6, tiles="CartoDB positron")
+    folium.Choropleth(
+        geo_data=geojson_data,
+        data=latest,
+        columns=['Region', selected_disease],
+        key_on='feature.properties.shapeName',
+        fill_color='YlGnBu',
+        fill_opacity=0.7,
+        line_opacity=0.2,
+        legend_name=selected_disease.replace('_',' ').title(),
+        nan_fill_color='gray'
+    ).add_to(m)
+    folium.GeoJsonTooltip(fields=['shapeName']).add_to(m)
+    st_folium(m, width=700, height=500)
 
-# Section 3: Behavioral & Demographic Correlation (uses df_single)
+# Section 3: Behavioral & Demographic Correlation Behavioral & Demographic Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
-var = st.selectbox(
-    "Compare with",
-    ['education_access_index','condom_use_rate','urbanization_level',
-     'hiv_awareness_index','youth_unemployment_rate']
-)
-fig2 = px.scatter(
-    df_single, x=var, y=selected_disease, color='region',
-    title=f"{var.replace('_',' ').title()} vs {selected_disease.replace('_',' ').title()}"
-)
+selected_var = st.selectbox("Choose variable", ['education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate'])
+fig2 = px.scatter(df_single, x=selected_var, y=selected_disease, color='region')
 st.plotly_chart(fig2, use_container_width=True)
 
-# Section 4: Correlation Heatmap (uses df_time)
+# Section 4: Correlation Heatmap
 st.subheader("4. Correlation Heatmap")
-num_cols = [
-    'hiv_incidence','malaria_incidence','tb_incidence',
-    'education_access_index','condom_use_rate','urbanization_level',
-    'hiv_awareness_index','youth_unemployment_rate'
-]
+num_cols = ['hiv_incidence','malaria_incidence','tb_incidence','education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate']
 corr = df_time[num_cols].corr()
 fig_hm, ax = plt.subplots(figsize=(8,6))
 sns.heatmap(corr, annot=True, fmt='.2f', cmap='viridis', ax=ax)
 st.pyplot(fig_hm)
 
-# Section 5: Forecasts (National level)
+# Section 5: ML Forecast (National)
 st.subheader("5. ML Forecasting (National)")
 if {'year','hiv_predicted'}.issubset(forecast_df.columns):
-    fig3 = px.line(
-        forecast_df, x='year', y='hiv_predicted',
-        title='National HIV Forecast to 2030'
-    )
+    fig3 = px.line(forecast_df, x='year', y='hiv_predicted')
     fig3.update_layout(height=500)
     st.plotly_chart(fig3, use_container_width=True)
 else:
     st.warning("Forecast data missing.")
 
-# Section 6: Model Performance Summary
+# Section 6: Model Performance
 st.subheader("6. Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
 
@@ -176,9 +155,9 @@ st.dataframe(metrics_df, use_container_width=True)
 st.subheader("7. Model Metrics Correlation Heatmap")
 metrics_numeric = metrics_df.select_dtypes(include='number')
 if not metrics_numeric.empty:
-    corr_metrics = metrics_numeric.corr()
+    corr_m = metrics_numeric.corr()
     fig_mm, ax_mm = plt.subplots(figsize=(8,6))
-    sns.heatmap(corr_metrics, annot=True, fmt='.2f', cmap='coolwarm', ax=ax_mm)
+    sns.heatmap(corr_m, annot=True, fmt='.2f', cmap='coolwarm', ax=ax_mm)
     st.pyplot(fig_mm)
 else:
     st.warning("No numeric metrics to correlate.")
