@@ -91,10 +91,10 @@ else:
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
 if not df_single.empty and selected_diseases:
-    latest = df_single.copy()
-    latest['region'] = latest['region'].str.strip().str.title()  # Standardize CSV region names
+    try:
+        latest = df_single.copy()
+        latest['region'] = latest['region'].str.strip().str.title()  # Standardize CSV region names
 
-        try:
         gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
 
         # Standardize GeoJSON region names
@@ -107,17 +107,17 @@ if not df_single.empty and selected_diseases:
             right_on='region'
         )
 
-        # 💥 Drop non-serializable columns like 'date'
+        # 💥 Drop Timestamp column 'date'
         if 'date' in merged.columns:
             merged = merged.drop(columns=['date'])
 
         # --- Dynamic Color Scheme based on selected disease ---
         if selected_diseases[0] == 'hiv_incidence':
-            color_scale = 'Purples'
+            color_scale = 'Reds'
         elif selected_diseases[0] == 'malaria_incidence':
-            color_scale = 'Greens'
+            color_scale = 'Purples'
         elif selected_diseases[0] == 'tb_incidence':
-            color_scale = 'Blues'
+            color_scale = 'Yellows'
         else:
             color_scale = 'YlOrRd'
 
@@ -169,11 +169,11 @@ if not df_single.empty and selected_diseases:
         folium.LayerControl().add_to(m)
         st_folium(m, width=1000, height=1600)
 
-
     except Exception as e:
         st.error(f"Map error: {e}")
 else:
     st.warning("Select a disease and ensure data is available.")
+
 
 
 
