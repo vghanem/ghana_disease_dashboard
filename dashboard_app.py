@@ -5,11 +5,13 @@ import folium
 from streamlit_folium import st_folium
 import json
 import numpy as np
+from branca.colormap import LinearColormap
 
-# Region configurations
+# List of the 10 original regions (uppercase)
 original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 
                    'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA']
 
+# Mapping of new region names to their parent original regions
 region_mapping = {
     'AHAFO': 'BRONG-AHAFO',
     'BONO': 'BRONG-AHAFO',
@@ -20,6 +22,7 @@ region_mapping = {
     'SAVANNAH': 'NORTHERN'
 }
 
+# Region configuration
 REGION_MAPPING = {
     'Ahafo': 'Brong-Ahafo',
     'Bono': 'Brong-Ahafo',
@@ -36,15 +39,36 @@ def load_main_data():
     df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
     df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
-    df = df[df['region'].isin(original_regions)]
+    df = df[df['region'].isin(original_regions)]  # Filter to the 10 original regions
     return df
 
 @st.cache_data
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
         gj = json.load(f)
+        valid_features = []
+        mapped_warnings = []
+        dropped = set()
         for feature in gj['features']:
-            feature['properties']['shapeName'] = feature['properties']['shapeName'].upper()
+            original_name = feature['properties']['shapeName'].title()  # Convert to title case
+            mapped_name = REGION_MAPPING.get(original_name, original_name).upper()
+            if mapped_name in original_regions:
+                feature['properties']['shapeName'] = mapped_name
+                valid_features.append(feature)
+            elif original_name.upper() in region_mapping:
+                new_region = region_mapping[original_name.upper()]
+                feature['properties']['shapeName'] = new_region
+                valid_features.append(feature)
+                mapped_warnings.append(f"{original_name} → {new_region}")
+            else:
+                dropped.add(original_name.upper())
+        
+        if mapped_warnings:
+            st.warning(f"Mapped regions: {', '.join(mapped_warnings)}")
+        if dropped:
+            st.warning(f"Dropped regions: {', '.join(sorted(dropped))}")
+        
+        gj['features'] = valid_features
         return gj
 
 @st.cache_data
@@ -116,18 +140,10 @@ else:
         fig1.update_layout(width=1200, height=600)
         st.plotly_chart(fig1, use_container_width=True)
 
-# Section 2: Choropleth Map (Revised)
+# Section 2: Choropleth Map
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
-    
-    # Merge GeoJSON with data
-    for feature in geojson_data['features']:
-        region_name = feature['properties']['shapeName']
-        if region_name in latest['region'].values:
-            feature['properties']['disease_value'] = latest.loc[latest['region'] == region_name, selected_diseases[0]].values[0]
-        else:
-            feature['properties']['disease_value'] = None
     
     try:
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, 
@@ -135,7 +151,6 @@ if not df_single.empty and selected_diseases:
         
         folium.Choropleth(
             geo_data=geojson_data,
-            name='choropleth',
             data=latest,
             columns=['region', selected_diseases[0]],
             key_on='feature.properties.shapeName',
@@ -147,12 +162,25 @@ if not df_single.empty and selected_diseases:
             line_color='white'
         ).add_to(m)
         
+        for region in geojson_data['features']:
+            region_name = region['properties']['shapeName']
+            region_data = latest[latest['region'] == region_name]
+            if not region_data.empty:
+                folium.map.Marker(
+                    location=get_region_centroid(region),
+                    icon=folium.DivIcon(
+                        icon_size=(150, 36),
+                        icon_anchor=(0, 0),
+                        html=f'<div style="font-weight:bold">{region_name}</div>',
+                    ),
+                ).add_to(m)
+                
         folium.GeoJson(
             geojson_data,
             name='Regions',
             style_function=lambda x: {'fillOpacity': 0},
             tooltip=folium.GeoJsonTooltip(
-                fields=['shapeName', 'disease_value'],
+                fields=['shapeName', selected_diseases[0]],
                 aliases=['Region:', f'{selected_diseases[0].replace("_"," ").title()}:']
             )
         ).add_to(m)
@@ -222,16 +250,13 @@ fig.update_traces(hoverongaps=False)
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Section 5: Forecasts (Revised)
+# Section 5: Forecasts
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    if 'hiv_predicted_2030' in forecast_df.columns:
-        fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='disease',
-                     barmode='group', title='Projected 2030 Disease Incidence by Region')
-        fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
-        st.plotly_chart(fig5, use_container_width=True)
-    else:
-        st.error("Forecast data missing required columns.")
+    fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='disease',
+              barmode='group', title='Projected 2030 Disease Incidence by Region')
+    fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
+    st.plotly_chart(fig5, use_container_width=True)
 else:
     st.warning("Forecast data not available.")
 
