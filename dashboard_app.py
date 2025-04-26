@@ -22,7 +22,6 @@ region_mapping = {
     'SAVANNAH': 'NORTHERN'
 }
 
-# Region configuration
 REGION_MAPPING = {
     'Ahafo': 'Brong-Ahafo',
     'Bono': 'Brong-Ahafo',
@@ -137,7 +136,7 @@ else:
         st.warning("No data available for selected filters.")
     else:
         fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-        fig1.update_layout(width=1200, height=600)
+        fig1.update_layout(width=1200, height=800)  # Increased height for larger plot
         st.plotly_chart(fig1, use_container_width=True)
 
 # Section 2: Choropleth Map
@@ -253,10 +252,14 @@ st.plotly_chart(fig, use_container_width=True)
 # Section 5: Forecasts
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='disease',
-              barmode='group', title='Projected 2030 Disease Incidence by Region')
-    fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
-    st.plotly_chart(fig5, use_container_width=True)
+    # Ensuring the forecast data has the proper column name
+    if 'hiv_predicted_2030' not in forecast_df.columns:
+        st.error("The column 'hiv_predicted_2030' is missing in the forecast data.")
+    else:
+        fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='region',
+                  title='Projected 2030 Disease Incidence by Region')
+        fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
+        st.plotly_chart(fig5, use_container_width=True)
 else:
     st.warning("Forecast data not available.")
 
