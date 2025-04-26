@@ -227,7 +227,6 @@ if not metrics_df.empty:
 else:
     st.warning("Model performance data not available.")
 
-
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
 try:
