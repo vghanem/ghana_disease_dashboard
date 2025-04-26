@@ -111,7 +111,7 @@ min_date, max_date = df['date'].min().date(), df['date'].max().date()
 date_range = st.sidebar.date_input("Date Range", [min_date, max_date])
 
 # Slices
-df_time = df[(df['region'].isin(selected_region)) &
+df_time = df[(df['region'].isin(selected_region)) & 
              (df['date'].dt.date >= date_range[0]) & 
              (df['date'].dt.date <= date_range[1])]
 df_single = df[(df['region'].isin(selected_region)) & 
