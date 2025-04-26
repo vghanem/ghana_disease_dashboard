@@ -157,29 +157,25 @@ else:
 # Section 4: Correlation Heatmap of Key Predictors
 st.subheader("4. Correlation Heatmap of Key Predictors")
 
-# Define the variables and their order based on the provided image
-variables = ['HIV', 'ART', 'Literacy', 'Condom', 'Unemp', 'Stigma']
-correlation_matrix = [
-    [1.00, 0.13, -0.07, 0.07, -0.17, -0.01],
-    [0.13, 1.00, -0.09, -0.13, 0.24, -0.06],
-    [-0.07, -0.09, 1.00, -0.10, 0.09, 0.06],
-    [0.07, -0.13, -0.10, 1.00, -0.08, -0.11],
-    [-0.17, 0.24, 0.09, -0.08, 1.00, 0.04],
-    [-0.01, -0.06, 0.06, -0.11, 0.04, 1.00]
-]
+# Calculate the correlation matrix
+numeric_cols = ['hiv_incidence', 'malaria_incidence', 'tb_incidence', 'education_access_index',
+                'condom_use_rate', 'female_literacy_rate', 'youth_unemployment_rate',
+                'hiv_awareness_index', 'access_to_art_pct', 'testing_coverage_pct',
+                'health_facility_density', 'urbanization_level']
+corr_matrix = df[numeric_cols].corr()
 
-# Create a DataFrame for the correlation matrix
-corr_df = pd.DataFrame(correlation_matrix, index=variables, columns=variables)
+# Create a mask for the upper triangle
+mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
 
-# Create the heatmap using seaborn
-plt.figure(figsize=(10, 8))
-sns.set(font_scale=1.2)
-ax = sns.heatmap(corr_df, annot=True, cmap='coolwarm', square=True,
-                 linewidths=.5, cbar_kws={"shrink": .8, "label": "Correlation"})
+# Set up the matplotlib figure
+plt.figure(figsize=(12, 10))
+
+# Draw the heatmap with the mask and correct aspect ratio
+sns.heatmap(corr_matrix, mask=mask, cmap='coolwarm', vmax=1, vmin=-1, center=0, annot=True,
+            square=True, cbar_kws={"shrink": .8, "label": "Correlation"})
 
 # Customize the plot
-ax.set_title('Correlation Heatmap of Key Predictors', fontsize=16)
-plt.yticks(rotation=0)
+plt.title('Correlation Heatmap: Disease Incidences & Socio-Health Indicators', fontsize=16)
 plt.tight_layout()
 
 # Display the heatmap in Streamlit
