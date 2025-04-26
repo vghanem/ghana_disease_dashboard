@@ -91,47 +91,52 @@ else:
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
-    try:
-        m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles='CartoDB positron')
-        folium.Choropleth(
-            geo_data=geojson_data,
-            data=latest,
-            columns=['region', selected_diseases[0]],
-            key_on='feature.properties.shapeName',
-            fill_color='YlOrRd',
-            fill_opacity=0.7,
-            line_opacity=0.2,
-            legend_name=f"{selected_diseases[0].replace('_', ' ').title()} per 100k",
-            highlight=True,
-            line_color='white'
-        ).add_to(m)
 
-        for region in geojson_data['features']:
-            region_name = region['properties']['shapeName']
-            region_data = latest[latest['region'] == region_name]
-            if not region_data.empty:
-                folium.map.Marker(
-                    location=get_region_centroid(region),
-                    icon=folium.DivIcon(icon_size=(150, 36),
-                        icon_anchor=(0, 0),
-                        html=f'<div style="font-weight:bold">{region_name}</div>'),
-                ).add_to(m)
+    if selected_diseases[0] not in latest.columns:
+        st.error(f"The selected disease '{selected_diseases[0]}' is not available in the data.")
+    else:
+        try:
+            m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles='CartoDB positron')
 
-        folium.GeoJson(
-            geojson_data,
-            name='Regions',
-            style_function=lambda x: {'fillOpacity': 0},
-            tooltip=folium.GeoJsonTooltip(
-                fields=['shapeName', selected_diseases[0]],
-                aliases=['Region:', f'{selected_diseases[0].replace("_", " ").title()}:']
-            )
-        ).add_to(m)
+            folium.Choropleth(
+                geo_data=geojson_data,
+                data=latest,
+                columns=['region', selected_diseases[0]],
+                key_on='feature.properties.shapeName',
+                fill_color='YlOrRd',
+                fill_opacity=0.7,
+                line_opacity=0.2,
+                legend_name=f"{selected_diseases[0].replace('_', ' ').title()} per 100k",
+                highlight=True,
+                line_color='white'
+            ).add_to(m)
 
-        folium.LayerControl().add_to(m)
-        st_folium(m, width=800, height=600)
+            for region in geojson_data['features']:
+                region_name = region['properties']['shapeName']
+                region_data = latest[latest['region'] == region_name]
+                if not region_data.empty:
+                    folium.map.Marker(
+                        location=get_region_centroid(region),
+                        icon=folium.DivIcon(icon_size=(150, 36),
+                            icon_anchor=(0, 0),
+                            html=f'<div style="font-weight:bold">{region_name}</div>'),
+                    ).add_to(m)
 
-    except Exception as e:
-        st.error(f"Map error: {str(e)}")
+            folium.GeoJson(
+                geojson_data,
+                name='Regions',
+                style_function=lambda x: {'fillOpacity': 0},
+                tooltip=folium.GeoJsonTooltip(
+                    fields=['shapeName', selected_diseases[0]],
+                    aliases=['Region:', f'{selected_diseases[0].replace("_", " ").title()}:']
+                )
+            ).add_to(m)
+
+            folium.LayerControl().add_to(m)
+            st_folium(m, width=800, height=600)
+
+        except Exception as e:
+            st.error(f"Map error: {str(e)}")
 else:
     st.warning("Select a disease and ensure data is available.")
 
@@ -165,13 +170,18 @@ fig.update_xaxes(tickangle=45)
 fig.update_traces(hoverongaps=False)
 st.plotly_chart(fig, use_container_width=True)
 
-# --- SECTION 5: Forecasts ---
+# --- SECTION 5: Forecasts (FIXED) ---
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    fig5 = px.bar(forecast_df, x='region', y='predicted_2030', color='region',
-                 barmode='group', title='Projected 2030 Disease Incidence by Region')
-    fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate', xaxis_tickangle=-45)
-    st.plotly_chart(fig5, use_container_width=True)
+    forecast_cols = forecast_df.columns.tolist()
+    y_col = [col for col in forecast_cols if 'predict' in col.lower()]
+    if y_col:
+        fig5 = px.bar(forecast_df, x='region', y=y_col[0], color='region',
+                     barmode='group', title='Projected 2030 Disease Incidence by Region')
+        fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate', xaxis_tickangle=-45)
+        st.plotly_chart(fig5, use_container_width=True)
+    else:
+        st.warning("No predicted incidence column found in forecast dataset.")
 else:
     st.warning("Forecast data not available.")
 
@@ -192,7 +202,7 @@ if not metrics_df.empty:
 else:
     st.warning("Model performance data not available.")
 
-# --- SECTION 8: Granular HIV Trend Over Time ---
+# --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
 try:
     hiv_heatmap_data = df[['date', 'region', 'hiv_incidence']]
