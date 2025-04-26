@@ -85,6 +85,9 @@ if not df_single.empty and selected_diseases:
         gdf['shapeName'] = gdf['shapeName'].str.upper()
         merged = gdf.merge(regional_totals, left_on='shapeName', right_on='region')
 
+        if merged.empty:
+            raise ValueError("No matching regions found between GeoDataFrame and data.")
+
         fig, ax = plt.subplots(figsize=(10, 10))
         merged.plot(
             column=selected_diseases[0],
@@ -97,12 +100,13 @@ if not df_single.empty and selected_diseases:
         )
 
         for idx, row in merged.iterrows():
-            if row['geometry'].is_empty or row['geometry'].isna().any():
+            if row['geometry'].is_empty or row['geometry'] is None:
                 continue
             rep_point = row['geometry'].representative_point()
             ax.annotate(s=row['region'], xy=(rep_point.x, rep_point.y), ha='center', fontsize=8, weight='bold')
 
         ax.set_title(f"Choropleth Map: {selected_diseases[0].replace('_', ' ').title()} Across Ghanaian Regions (10 Regions)")
+        ax.set_aspect('equal')
         ax.axis('off')
         st.pyplot(fig)
     except Exception as e:
