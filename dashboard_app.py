@@ -23,11 +23,9 @@ def load_main_data():
 
 @st.cache_data
 def load_geojson():
-    with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
-        gj = json.load(f)
-        for feature in gj['features']:
-            feature['properties']['shapeName'] = feature['properties']['shapeName'].upper()
-        return gj
+    gdf = gpd.read_file("geoBoundaries-GHA-ADM1_simplified.geojson")
+    gdf['shapeName'] = gdf['shapeName'].str.upper()
+    return gdf
 
 @st.cache_data
 def load_forecast():
@@ -95,8 +93,7 @@ st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
     try:
-        gdf = gpd.read_file("geoBoundaries-GHA-ADM1_simplified.geojson")
-        gdf['shapeName'] = gdf['shapeName'].str.upper()
+        gdf = geojson_data.copy()
 
         # ✅ Filter only regions present in dataset (10 original)
         gdf_10 = gdf[gdf['shapeName'].isin(latest['region'].unique())].copy()
