@@ -12,8 +12,27 @@ import matplotlib.pyplot as plt
 # List of the 10 original regions (uppercase)
 original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA']
 
-# Region configuration (no additional regions allowed)
-REGION_MAPPING = {}
+# Mapping of new region names to their parent original regions
+region_mapping = {
+    'AHAFO': 'BRONG-AHAFO',
+    'BONO': 'BRONG-AHAFO',
+    'BONO EAST': 'BRONG-AHAFO',
+    'WESTERN NORTH': 'WESTERN',
+    'OTI': 'VOLTA',
+    'NORTH EAST': 'NORTHERN',
+    'SAVANNAH': 'NORTHERN'
+}
+
+# Region configuration
+REGION_MAPPING = {
+    'Ahafo': 'Brong-Ahafo',
+    'Bono': 'Brong-Ahafo',
+    'Bono East': 'Brong-Ahafo',
+    'Savannah': 'Northern',
+    'North East': 'Northern',
+    'Western North': 'Western',
+    'Oti': 'Volta'
+}
 
 # Load main dataset
 @st.cache_data
@@ -29,10 +48,29 @@ def load_main_data():
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
         gj = json.load(f)
-        gj['features'] = [feat for feat in gj['features']
-                          if feat['properties']['shapeName'].lower() in original_regions]
-        for feat in gj['features']:
-            feat['properties']['shapeName'] = feat['properties']['shapeName'].upper()
+        valid_features = []
+        mapped_warnings = []
+        dropped = set()
+        for feature in gj['features']:
+            original_name = feature['properties']['shapeName'].title()  # Convert to title case
+            mapped_name = REGION_MAPPING.get(original_name, original_name).upper()
+            if mapped_name in original_regions:
+                feature['properties']['shapeName'] = mapped_name
+                valid_features.append(feature)
+            elif original_name.upper() in region_mapping:
+                new_region = region_mapping[original_name.upper()]
+                feature['properties']['shapeName'] = new_region
+                valid_features.append(feature)
+                mapped_warnings.append(f"{original_name} → {new_region}")
+            else:
+                dropped.add(original_name.upper())
+        
+        if mapped_warnings:
+            st.warning(f"Mapped regions: {', '.join(mapped_warnings)}")
+        if dropped:
+            st.warning(f"Dropped regions: {', '.join(sorted(dropped))}")
+        
+        gj['features'] = valid_features
         return gj
 
 # Load forecasts and metrics
@@ -132,59 +170,3 @@ if not df_single.empty:
         st.warning("No regional data available for the selected date range. Please adjust filters.")
 else:
     st.warning("No data available for the selected date range. Please adjust filters.")
-
-# Section 3: Behavioral & Demographic Correlation
-st.subheader("3. Behavioral & Demographic Correlation")
-if selected_disease and not df_single.empty:
-    selected_var = st.selectbox("Choose variable", ['education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate'])
-    fig2 = px.scatter(df_single, x=selected_var, y=selected_disease[0], color='region')
-    st.plotly_chart(fig2, use_container_width=True)
-else:
-    st.warning("Please select at least one disease and ensure data is available for the selected date range.")
-
-# Section 4: Correlation Heatmap of Key Predictors
-st.subheader("4. Correlation Heatmap of Key Predictors")
-
-# Calculate the correlation matrix
-numeric_cols = ['hiv_incidence', 'malaria_incidence', 'tb_incidence', 'education_access_index',
-                'condom_use_rate', 'female_literacy_rate', 'youth_unemployment_rate',
-                'hiv_awareness_index', 'access_to_art_pct', 'testing_coverage_pct',
-                'health_facility_density', 'urbanization_level']
-corr_matrix = df[numeric_cols].corr()
-
-# Create a mask for the upper triangle
-mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
-
-# Set up the matplotlib figure
-plt.figure(figsize=(12, 10))
-
-# Draw the heatmap with the mask and correct aspect ratio
-sns.heatmap(corr_matrix, mask=mask, cmap='coolwarm', vmax=1, vmin=-1, center=0, annot=True,
-            square=True, cbar_kws={"shrink": .8, "label": "Correlation"})
-
-# Customize the plot
-plt.title('Correlation Heatmap: Disease Incidences & Socio-Health Indicators', fontsize=16)
-plt.tight_layout()
-
-# Display the heatmap in Streamlit
-st.pyplot(plt)
-
-# Section 6: Model Performance
-st.subheader("6. Model Performance Summary")
-st.dataframe(metrics_df, use_container_width=True)
-
-# Section 7: Model Metrics Correlation Heatmap
-st.subheader("7. Machine Learning Model Performance Heatmap")
-
-if not metrics_df.empty:
-    fig_mm = px.imshow(metrics_df.set_index('Model'), text_auto=True, aspect="auto", 
-                      title="ML Model Performance Metrics",
-                      labels=dict(color="Score"), x=metrics_df.columns[1:], y=metrics_df['Model'])
-    fig_mm.update_layout(height=500)
-    st.plotly_chart(fig_mm, use_container_width=True)
-else:
-    st.warning("No model metrics data available for visualization.")
-
-# Footer
-st.markdown("---")
-st.markdown("*Developed by Valentine Ghanem | MSc Public Health & Data Science*")
