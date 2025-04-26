@@ -94,7 +94,7 @@ if not df_single.empty and selected_diseases:
     latest = df_single.copy()
     latest['region'] = latest['region'].str.strip().str.title()  # Standardize CSV region names
 
-    try:
+        try:
         gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
 
         # Standardize GeoJSON region names
@@ -107,6 +107,10 @@ if not df_single.empty and selected_diseases:
             right_on='region'
         )
 
+        # 💥 Drop non-serializable columns like 'date'
+        if 'date' in merged.columns:
+            merged = merged.drop(columns=['date'])
+
         # --- Dynamic Color Scheme based on selected disease ---
         if selected_diseases[0] == 'hiv_incidence':
             color_scale = 'Purples'
@@ -115,7 +119,7 @@ if not df_single.empty and selected_diseases:
         elif selected_diseases[0] == 'tb_incidence':
             color_scale = 'Blues'
         else:
-            color_scale = 'YlOrRd'  # Default
+            color_scale = 'YlOrRd'
 
         # Create the map
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
@@ -163,7 +167,8 @@ if not df_single.empty and selected_diseases:
         ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        st_folium(m, width=1000, height=700)
+        st_folium(m, width=1000, height=1600)
+
 
     except Exception as e:
         st.error(f"Map error: {e}")
