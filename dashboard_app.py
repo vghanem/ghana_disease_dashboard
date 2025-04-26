@@ -87,19 +87,18 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Regional Distribution Map (Independent Dropdown) ---
+# --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
-# 👉 Place Map Disease Dropdown (completely independent)
+st.markdown("### Select Disease to Display on the Map")
 map_disease_option = st.selectbox(
-    "Select disease to display on the map (only affects the map, not sidebar filters):",
+    "Choose disease prevalence for map shading (affects only map):",
     options=['hiv_incidence', 'malaria_incidence', 'tb_incidence'],
     index=0
 )
 
 try:
-    # --- Data Preparation ---
     latest = df.copy()
     latest['region'] = latest['region'].str.strip().str.title()
 
@@ -107,7 +106,6 @@ try:
     gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
     gdf['shapeName'] = gdf['shapeName'].replace({'Brong Ahafo': 'Brong-Ahafo'})
 
-    # Only get latest date per region
     latest_filtered = latest.sort_values('date').groupby('region').last().reset_index()
 
     merged = gdf.merge(
@@ -119,9 +117,9 @@ try:
     if 'date' in merged.columns:
         merged = merged.drop(columns=['date'])
 
-    # --- Dynamic Color Scheme ---
+    # Dynamic color based on selected disease
     if map_disease_option == 'hiv_incidence':
-        color_scale = 'Purples'
+        color_scale = 'Reds'
     elif map_disease_option == 'malaria_incidence':
         color_scale = 'Greens'
     elif map_disease_option == 'tb_incidence':
@@ -129,7 +127,6 @@ try:
     else:
         color_scale = 'YlOrRd'
 
-    # --- Draw Map ---
     m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
 
     choropleth = folium.Choropleth(
@@ -147,24 +144,10 @@ try:
     )
     choropleth.add_to(m)
 
-    style_function = lambda x: {
-        'fillColor': '#ffffff',
-        'color': 'black',
-        'fillOpacity': 0,
-        'weight': 1
-    }
-
-    highlight_function = lambda x: {
-        'fillColor': '#000000',
-        'color': '#000000',
-        'fillOpacity': 0.5,
-        'weight': 3
-    }
-
     folium.GeoJson(
         merged,
-        style_function=style_function,
-        highlight_function=highlight_function,
+        style_function=lambda x: {'fillColor': '#ffffff', 'color': 'black', 'fillOpacity': 0, 'weight': 1},
+        highlight_function=lambda x: {'fillColor': '#000000', 'color': '#000000', 'fillOpacity': 0.5, 'weight': 3},
         tooltip=folium.features.GeoJsonTooltip(
             fields=['shapeName', map_disease_option],
             aliases=['Region:', f'{map_disease_option.replace("_", " ").title()}:'],
@@ -174,12 +157,10 @@ try:
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    st_folium(m, width=1200, height=700)
+    st_folium(m, width=1400, height=800)  # ➔ Big wide map
 
 except Exception as e:
     st.error(f"Map error: {e}")
-
-
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
