@@ -5,9 +5,9 @@ import folium
 from streamlit_folium import st_folium
 import json
 import numpy as np
-from branca.colormap import LinearColormap
 import seaborn as sns
 import matplotlib.pyplot as plt
+from branca.colormap import LinearColormap
 
 # Region configurations
 original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 
@@ -107,7 +107,7 @@ st.title("📈 Ghana Infectious Disease Trends Dashboard")
 st.markdown("#### Machine Learning-Powered Epidemiology | HIV/AIDS Focus")
 st.markdown("---")
 
-# Section 1: Time Series (Widened)
+# Section 1: Time Series
 st.subheader("1. National Disease Trends Over Time")
 if not selected_diseases:
     st.warning("Please select at least one disease to display trends.")
@@ -116,11 +116,11 @@ else:
         st.warning("No data available for selected filters.")
     else:
         fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-        fig1.update_layout(width=1500, height=600)  # Widened chart for clarity
-        fig1.update_layout(showlegend=True, legend=dict(title="Region"))
+        fig1.update_layout(width=1200, height=600)
+        fig1.update_layout(xaxis=dict(tickangle=-45))  # To widen the year axis
         st.plotly_chart(fig1, use_container_width=True)
 
-# Section 2: Choropleth Map (Fixed)
+# Section 2: Choropleth Map (Updated for 10 Regions)
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
@@ -142,6 +142,29 @@ if not df_single.empty and selected_diseases:
             line_color='white'
         ).add_to(m)
         
+        for region in geojson_data['features']:
+            region_name = region['properties']['shapeName']
+            region_data = latest[latest['region'] == region_name]
+            if not region_data.empty:
+                folium.map.Marker(
+                    location=get_region_centroid(region),
+                    icon=folium.DivIcon(
+                        icon_size=(150, 36),
+                        icon_anchor=(0, 0),
+                        html=f'<div style="font-weight:bold">{region_name}</div>',
+                    ),
+                ).add_to(m)
+                
+        folium.GeoJson(
+            geojson_data,
+            name='Regions',
+            style_function=lambda x: {'fillOpacity': 0},
+            tooltip=folium.GeoJsonTooltip(
+                fields=['shapeName', selected_diseases[0]],
+                aliases=['Region:', f'{selected_diseases[0].replace("_"," ").title()}:']
+            )
+        ).add_to(m)
+        
         folium.LayerControl().add_to(m)
         st_folium(m, width=800, height=600)
         
@@ -153,7 +176,7 @@ elif not selected_diseases:
 else:
     st.warning("No data available for selected filters.")
 
-# Section 3: Behavioral Correlation
+# Section 3: Behavioral & Demographic Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox("Choose variable", 
@@ -207,10 +230,10 @@ fig.update_traces(hoverongaps=False)
 
 st.plotly_chart(fig, use_container_width=True)
 
-# Section 5: Forecasts
+# Section 5: Forecasts (2030)
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='region',
+    fig5 = px.bar(forecast_df, x='region', y='predicted_2030', color='region',
                  barmode='group', title='Projected 2030 Disease Incidence by Region')
     fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
     st.plotly_chart(fig5, use_container_width=True)
