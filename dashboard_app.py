@@ -5,9 +5,6 @@ import folium
 from streamlit_folium import st_folium
 import json
 from branca.colormap import LinearColormap
-import numpy as np
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # List of the 10 original regions (uppercase)
 original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA']
