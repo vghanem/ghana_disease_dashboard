@@ -18,8 +18,8 @@ REGION_MAPPING = {
 }
 
 ORIGINAL_REGIONS = [
-    'UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO',
-    'ASHANTI', 'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA'
+    'Upper West', 'Upper East', 'Northern', 'Brong-Ahafo',
+    'Ashanti', 'Eastern', 'Western', 'Central', 'Greater Accra', 'Volta'
 ]
 
 # Enhanced data loading with validation
@@ -35,7 +35,7 @@ def load_main_data():
     
     df['date'] = pd.to_datetime(df['date'], errors='coerce')
     df = df.dropna(subset=['date'])
-    df['region'] = df['region'].replace(REGION_MAPPING).str.upper()
+    df['region'] = df['region'].str.title().replace(REGION_MAPPING)
     return df[df['region'].isin(ORIGINAL_REGIONS)]
 
 @st.cache_data
@@ -46,8 +46,8 @@ def load_geojson():
         
         valid_features = []
         for feature in gj['features']:
-            original_name = feature['properties']['shapeName'].title()  # Convert to title case
-            mapped_name = REGION_MAPPING.get(original_name, original_name).upper()
+            original_name = feature['properties']['shapeName'].title()
+            mapped_name = REGION_MAPPING.get(original_name, original_name)
             if mapped_name in ORIGINAL_REGIONS:
                 feature['properties']['shapeName'] = mapped_name
                 valid_features.append(feature)
@@ -65,7 +65,7 @@ def load_geojson():
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("hiv_predicted_2030_by_region.csv")
-    df['region'] = df['region'].replace(REGION_MAPPING).str.upper()
+    df['region'] = df['region'].str.title().replace(REGION_MAPPING)
     return df[df['region'].isin(ORIGINAL_REGIONS)]
 
 @st.cache_data
