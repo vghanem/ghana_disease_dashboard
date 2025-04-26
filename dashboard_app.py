@@ -46,7 +46,7 @@ def load_geojson():
         
         valid_features = []
         for feature in gj['features']:
-            original_name = feature['properties']['shapeName']
+            original_name = feature['properties']['shapeName'].title()  # Convert to title case
             mapped_name = REGION_MAPPING.get(original_name, original_name).upper()
             if mapped_name in ORIGINAL_REGIONS:
                 feature['properties']['shapeName'] = mapped_name
