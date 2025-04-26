@@ -6,12 +6,14 @@ from streamlit_folium import st_folium
 import json
 import numpy as np
 from branca.colormap import LinearColormap
+import seaborn as sns
+import matplotlib.pyplot as plt
+from st_aggrid import AgGrid
 
-# List of the 10 original regions (uppercase)
+# Region configurations
 original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 
                    'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA']
 
-# Mapping of new region names to their parent original regions
 region_mapping = {
     'AHAFO': 'BRONG-AHAFO',
     'BONO': 'BRONG-AHAFO',
@@ -32,48 +34,77 @@ REGION_MAPPING = {
     'Oti': 'Volta'
 }
 
+# Custom CSS for Streamlit App
+st.markdown("""
+    <style>
+        body {
+            background-color: #f4f4f9;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .header {
+            color: #1e3a8a;
+            font-size: 36px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .subheader {
+            color: #4b5563;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .chart-title {
+            color: #3b82f6;
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .footer {
+            background-color: #1e3a8a;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+        
+        .stButton>button {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+        }
+        .stButton>button:hover {
+            background-color: #3b82f6;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # Data loading functions
 @st.cache_data
 def load_main_data():
     df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
-    df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
-    df = df[df['region'].isin(original_regions)]  # Filter to the 10 original regions
+    df['region'] = df['region'].str.upper().str.strip()
     return df
 
 @st.cache_data
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
         gj = json.load(f)
-        valid_features = []
-        mapped_warnings = []
-        dropped = set()
         for feature in gj['features']:
-            original_name = feature['properties']['shapeName'].title()  # Convert to title case
-            mapped_name = REGION_MAPPING.get(original_name, original_name).upper()
-            if mapped_name in original_regions:
-                feature['properties']['shapeName'] = mapped_name
-                valid_features.append(feature)
-            elif original_name.upper() in region_mapping:
-                new_region = region_mapping[original_name.upper()]
-                feature['properties']['shapeName'] = new_region
-                valid_features.append(feature)
-                mapped_warnings.append(f"{original_name} → {new_region}")
-            else:
-                dropped.add(original_name.upper())
-        
-        if mapped_warnings:
-            st.warning(f"Mapped regions: {', '.join(mapped_warnings)}")
-        if dropped:
-            st.warning(f"Dropped regions: {', '.join(sorted(dropped))}")
-        
-        gj['features'] = valid_features
+            feature['properties']['shapeName'] = feature['properties']['shapeName'].upper()
         return gj
 
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("hiv_predicted_2030_by_region.csv")
-    df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
+    df['region'] = df['region'].str.upper().str.strip()
     return df
 
 @st.cache_data
@@ -136,14 +167,24 @@ else:
         st.warning("No data available for selected filters.")
     else:
         fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-        fig1.update_layout(width=1200, height=800)  # Increased height for larger plot
+        fig1.update_layout(
+            width=1500, height=600,
+            showlegend=True,
+            legend=dict(
+                x=1.05, y=1, traceorder='normal', orientation='v',
+                font=dict(size=10), bgcolor='rgba(255, 255, 255, 0.8)',
+                bordercolor='Black', borderwidth=1
+            )
+        )
         st.plotly_chart(fig1, use_container_width=True)
 
-# Section 2: Choropleth Map
+# Section 2: Choropleth Map (10 Original Regions)
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
-if not df_single.empty and selected_diseases:
+
+# Prepare latest data for the selected date
+if not df_single.empty:
     latest = df_single.groupby('region').last().reset_index()
-    
+
     try:
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, 
                       tiles='CartoDB positron')
@@ -195,7 +236,7 @@ elif not selected_diseases:
 else:
     st.warning("No data available for selected filters.")
 
-# Section 3: Behavioral Correlation
+# Section 3: Behavioral & Demographic Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox("Choose variable", 
@@ -252,14 +293,10 @@ st.plotly_chart(fig, use_container_width=True)
 # Section 5: Forecasts
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    # Ensuring the forecast data has the proper column name
-    if 'hiv_predicted_2030' not in forecast_df.columns:
-        st.error("The column 'hiv_predicted_2030' is missing in the forecast data.")
-    else:
-        fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='region',
+    fig5 = px.bar(forecast_df, x='region', y='predicted_2030', color='region',
                   title='Projected 2030 Disease Incidence by Region')
-        fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
-        st.plotly_chart(fig5, use_container_width=True)
+    fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
+    st.plotly_chart(fig5, use_container_width=True)
 else:
     st.warning("Forecast data not available.")
 
