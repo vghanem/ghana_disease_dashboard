@@ -87,11 +87,26 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Corrected Interactive Choropleth Map ---
-# Correct Section 2 Map
+# --- SECTION 2: Corrected & Upgraded Interactive Choropleth Map ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
+
+# Mapping between CSV and GeoJSON regions
+region_name_mapping = {
+    "ASHANTI": "Ashanti Region",
+    "BRONG AHAFO": "Brong Ahafo Region",
+    "CENTRAL": "Central Region",
+    "EASTERN": "Eastern Region",
+    "GREATER ACCRA": "Greater Accra Region",
+    "NORTHERN": "Northern Region",
+    "UPPER EAST": "Upper East Region",
+    "UPPER WEST": "Upper West Region",
+    "VOLTA": "Volta Region",
+    "WESTERN": "Western Region"
+}
+
 if not df_single.empty and selected_diseases:
-    latest = df_single.groupby('region').last().reset_index()
+    latest = df_single.copy()
+    latest['region'] = latest['region'].map(region_name_mapping)  # Map CSV region to match GeoJSON
 
     try:
         gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
@@ -99,13 +114,14 @@ if not df_single.empty and selected_diseases:
 
         merged = gdf.merge(
             latest, how='left',
-            left_on='shapeName', right_on='region'
+            left_on=gdf['shapeName'].str.upper(),
+            right_on=latest['region'].str.upper()
         )
 
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
 
-        folium.Choropleth(
-            geo_data=json.loads(merged.to_json()),  # <--- IMPORTANT: use geoJSON here, not DataFrame
+        choropleth = folium.Choropleth(
+            geo_data=json.loads(merged.to_json()),
             data=merged,
             columns=['shapeName', selected_diseases[0]],
             key_on='feature.properties.shapeName',
@@ -116,21 +132,33 @@ if not df_single.empty and selected_diseases:
             legend_name=f"{selected_diseases[0].replace('_', ' ').title()} per 100k",
             highlight=True,
             line_color='black'
-        ).add_to(m)
+        )
+        choropleth.add_to(m)
+
+        # Add region highlighting and popups
+        style_function = lambda x: {
+            'fillColor': '#ffffff',
+            'color': 'black',
+            'fillOpacity': 0,
+            'weight': 1
+        }
+
+        highlight_function = lambda x: {
+            'fillColor': '#000000',
+            'color': '#000000',
+            'fillOpacity': 0.5,
+            'weight': 3
+        }
 
         folium.GeoJson(
-            json.loads(merged.to_json()),
-            name="Regions",
-            style_function=lambda feature: {
-                "fillOpacity": 0,
-                "color": "black",
-                "weight": 1,
-                "dashArray": "5, 5"
-            },
+            merged,
+            style_function=style_function,
+            highlight_function=highlight_function,
             tooltip=folium.features.GeoJsonTooltip(
                 fields=['shapeName', selected_diseases[0]],
                 aliases=['Region:', f'{selected_diseases[0].replace("_", " ").title()}:'],
-                localize=True
+                localize=True,
+                sticky=True
             )
         ).add_to(m)
 
@@ -141,6 +169,7 @@ if not df_single.empty and selected_diseases:
         st.error(f"Map error: {e}")
 else:
     st.warning("Select a disease and ensure data is available.")
+
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
