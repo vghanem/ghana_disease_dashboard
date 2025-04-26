@@ -9,14 +9,14 @@ import json
 # --- DATA LOADING FUNCTIONS ---
 @st.cache_data
 def load_main_data():
-    df = pd.read_csv("ghana_disease_data_10regions.csv")
+    df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
     df['region'] = df['region'].str.upper()
     return df
 
 @st.cache_data
 def load_geojson():
-    with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
+    with open("GHA_10regions_merged_final.geojson") as f:
         gj = json.load(f)
         for feature in gj['features']:
             feature['properties']['shapeName'] = feature['properties']['shapeName'].upper()
@@ -93,11 +93,9 @@ if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
 
     try:
-        # Load GeoJSON as GeoDataFrame
-        gdf = gpd.read_file("geoBoundaries-GHA-ADM1_simplified.geojson")
+        gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
         gdf['shapeName'] = gdf['shapeName'].str.upper()
 
-        # Merge data
         merged = gdf.set_index('shapeName').join(
             latest.set_index('region')
         ).reset_index()
@@ -191,12 +189,10 @@ else:
 st.subheader("6. Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
 
-# --- SECTION 7: Interactive Model Performance Heatmap (Direct from Section 6 Table) ---
+# --- SECTION 7: Interactive Model Performance Heatmap ---
 st.subheader("7. Interactive Model Performance Heatmap")
-
 if not metrics_df.empty:
     try:
-        # Directly use the metrics_df (assuming it's already in wide format)
         pivot_df = metrics_df.set_index('Model')
 
         fig_perf = px.imshow(
@@ -223,7 +219,6 @@ if not metrics_df.empty:
         st.error(f"Failed to plot model performance heatmap: {e}")
 else:
     st.warning("Model performance data not available.")
-
 
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
