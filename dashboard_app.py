@@ -6,27 +6,12 @@ from streamlit_folium import st_folium
 import json
 from branca.colormap import LinearColormap
 
-# --- REGION CONFIGURATION ---
-original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 
-                   'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA']
-
-REGION_MAPPING = {
-    'Ahafo': 'Brong-Ahafo',
-    'Bono': 'Brong-Ahafo',
-    'Bono East': 'Brong-Ahafo',
-    'Savannah': 'Northern',
-    'North East': 'Northern',
-    'Western North': 'Western',
-    'Oti': 'Volta'
-}
-
 # --- DATA LOADING ---
 @st.cache_data
 def load_main_data():
-    df = pd.read_csv("/mnt/data/ghana_infectious_disease_model_dataset_cleaned.csv")
+    df = pd.read_csv("ghana_disease_data_10regions.csv")
     df['date'] = pd.to_datetime(df['date'])
-    df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
-    df = df[df['region'].isin(original_regions)]
+    df['region'] = df['region'].str.upper()  # To match GeoJSON regions
     return df
 
 @st.cache_data
@@ -40,7 +25,7 @@ def load_geojson():
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("/mnt/data/hiv_predicted_2030_by_region.csv")
-    df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
+    df['region'] = df['region'].str.upper()
     return df
 
 @st.cache_data
@@ -59,6 +44,8 @@ df = load_main_data()
 geojson_data = load_geojson()
 forecast_df = load_forecast()
 metrics_df = load_metrics()
+
+original_regions = df['region'].unique().tolist()
 
 # --- SIDEBAR ---
 st.sidebar.header("Filter Panel")
