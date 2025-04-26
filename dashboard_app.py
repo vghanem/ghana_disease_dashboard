@@ -191,16 +191,13 @@ else:
 st.subheader("6. Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
 
-# SECTION 7: Model Performance Heatmap (fixed)
+# --- SECTION 7: Interactive Model Performance Heatmap (Direct from Section 6 Table) ---
 st.subheader("7. Interactive Model Performance Heatmap")
 
 if not metrics_df.empty:
     try:
-        st.write("Available columns in metrics_df:", metrics_df.columns.tolist())
-
-        # Convert wide format to long
-        metrics_long = metrics_df.melt(id_vars="Model", var_name="Metric", value_name="Value")
-        pivot_df = metrics_long.pivot(index="Model", columns="Metric", values="Value")
+        # Directly use the metrics_df (assuming it's already in wide format)
+        pivot_df = metrics_df.set_index('Model')
 
         fig_perf = px.imshow(
             pivot_df,
@@ -223,9 +220,10 @@ if not metrics_df.empty:
         st.plotly_chart(fig_perf, use_container_width=True)
 
     except Exception as e:
-        st.error(f"Failed to pivot and plot model performance: {e}")
+        st.error(f"Failed to plot model performance heatmap: {e}")
 else:
     st.warning("Model performance data not available.")
+
 
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
