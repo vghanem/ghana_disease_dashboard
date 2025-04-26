@@ -38,7 +38,8 @@ REGION_MAPPING = {
 def load_main_data():
     df = pd.read_csv("ghana_infectious_disease_model_dataset_cleaned.csv")
     df['date'] = pd.to_datetime(df['date'])
-    df['region'] = df['region'].str.upper().str.strip()
+    df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
+    df = df[df['region'].isin(original_regions)]
     return df
 
 @st.cache_data
@@ -52,7 +53,7 @@ def load_geojson():
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("hiv_predicted_2030_by_region.csv")
-    df['region'] = df['region'].str.upper().str.strip()
+    df['region'] = df['region'].str.lower().replace(REGION_MAPPING).str.upper()
     return df
 
 @st.cache_data
@@ -106,7 +107,7 @@ st.title("📈 Ghana Infectious Disease Trends Dashboard")
 st.markdown("#### Machine Learning-Powered Epidemiology | HIV/AIDS Focus")
 st.markdown("---")
 
-# Section 1: Time Series
+# Section 1: Time Series (Widened)
 st.subheader("1. National Disease Trends Over Time")
 if not selected_diseases:
     st.warning("Please select at least one disease to display trends.")
@@ -115,24 +116,15 @@ else:
         st.warning("No data available for selected filters.")
     else:
         fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-        fig1.update_layout(
-            width=1500, height=600,
-            showlegend=True,
-            legend=dict(
-                x=1.05, y=1, traceorder='normal', orientation='v',
-                font=dict(size=10), bgcolor='rgba(255, 255, 255, 0.8)',
-                bordercolor='Black', borderwidth=1
-            )
-        )
+        fig1.update_layout(width=1500, height=600)  # Widened chart for clarity
+        fig1.update_layout(showlegend=True, legend=dict(title="Region"))
         st.plotly_chart(fig1, use_container_width=True)
 
-# Section 2: Choropleth Map (10 Original Regions)
+# Section 2: Choropleth Map (Fixed)
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
-
-# Prepare latest data for the selected date
-if not df_single.empty:
+if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
-
+    
     try:
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, 
                       tiles='CartoDB positron')
@@ -150,29 +142,6 @@ if not df_single.empty:
             line_color='white'
         ).add_to(m)
         
-        for region in geojson_data['features']:
-            region_name = region['properties']['shapeName']
-            region_data = latest[latest['region'] == region_name]
-            if not region_data.empty:
-                folium.map.Marker(
-                    location=get_region_centroid(region),
-                    icon=folium.DivIcon(
-                        icon_size=(150, 36),
-                        icon_anchor=(0, 0),
-                        html=f'<div style="font-weight:bold">{region_name}</div>',
-                    ),
-                ).add_to(m)
-                
-        folium.GeoJson(
-            geojson_data,
-            name='Regions',
-            style_function=lambda x: {'fillOpacity': 0},
-            tooltip=folium.GeoJsonTooltip(
-                fields=['shapeName', selected_diseases[0]],
-                aliases=['Region:', f'{selected_diseases[0].replace("_"," ").title()}:']
-            )
-        ).add_to(m)
-        
         folium.LayerControl().add_to(m)
         st_folium(m, width=800, height=600)
         
@@ -184,7 +153,7 @@ elif not selected_diseases:
 else:
     st.warning("No data available for selected filters.")
 
-# Section 3: Behavioral & Demographic Correlation
+# Section 3: Behavioral Correlation
 st.subheader("3. Behavioral & Demographic Correlation")
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox("Choose variable", 
@@ -241,8 +210,8 @@ st.plotly_chart(fig, use_container_width=True)
 # Section 5: Forecasts
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    fig5 = px.bar(forecast_df, x='region', y='predicted_2030', color='region',
-                  title='Projected 2030 Disease Incidence by Region')
+    fig5 = px.bar(forecast_df, x='region', y='hiv_predicted_2030', color='region',
+                 barmode='group', title='Projected 2030 Disease Incidence by Region')
     fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate')
     st.plotly_chart(fig5, use_container_width=True)
 else:
