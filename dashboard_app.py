@@ -25,8 +25,9 @@ def load_main_data():
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
         gj = json.load(f)
-        features = [feat for feat in gj['features'] if feat['properties']['shapeName'].upper() in original_regions]
-        gj['features'] = features
+        # Convert region names to uppercase for consistency
+        for feature in gj['features']:
+            feature['properties']['shapeName'] = feature['properties']['shapeName'].upper()
         return gj
 
 @st.cache_data
@@ -89,8 +90,8 @@ else:
     csv = df_time.to_csv(index=False).encode('utf-8')
     st.download_button("📥 Download Filtered Data", csv, "filtered_disease_data.csv", "text/csv")
 
-# --- SECTION 2: Interactive Choropleth Map (Filtered to 10 Original Regions) ---
-st.subheader("2. Regional Distribution Map (10 Original Regions)")
+# --- SECTION 2: Interactive Choropleth Map ---
+st.subheader("2. Regional Distribution Map")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
     try:
@@ -114,7 +115,7 @@ if not df_single.empty and selected_diseases:
             geojson_data,
             name="Regions",
             style_function=lambda feature: {
-                "fillOpacity": 0,
+                "fillOpacity": 0.1,
                 "color": "black",
                 "weight": 1,
                 "dashArray": "5, 5"
