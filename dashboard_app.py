@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import geopandas as gpd
 import plotly.express as px
 import folium
 from streamlit_folium import st_folium
@@ -86,41 +87,55 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Choropleth Map ---
+# --- SECTION 2: Corrected Interactive Choropleth Map ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
 
     try:
-        m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles='CartoDB positron')
+        # Load GeoJSON as GeoDataFrame
+        gdf = gpd.read_file("geoBoundaries-GHA-ADM1_simplified.geojson")
+        gdf['shapeName'] = gdf['shapeName'].str.upper()
 
-        choropleth = folium.Choropleth(
-            geo_data=geojson_data,
-            data=latest,
-            columns=['region', selected_diseases[0]],
+        # Merge data
+        merged = gdf.set_index('shapeName').join(
+            latest.set_index('region')
+        ).reset_index()
+
+        m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
+
+        folium.Choropleth(
+            geo_data=merged,
+            data=merged,
+            columns=['shapeName', selected_diseases[0]],
             key_on='feature.properties.shapeName',
             fill_color='YlOrRd',
-            fill_opacity=0.7,
+            fill_opacity=0.8,
             line_opacity=0.2,
             nan_fill_color='white',
             legend_name=f"{selected_diseases[0].replace('_', ' ').title()} per 100k",
             highlight=True,
             line_color='black'
-        )
-        choropleth.add_to(m)
+        ).add_to(m)
 
-        # Adding tooltips properly
         folium.GeoJson(
-            geojson_data,
-            name='Regions',
-            style_function=lambda x: {"fillOpacity": 0},
+            merged,
+            name="Regions",
+            style_function=lambda feature: {
+                "fillOpacity": 0,
+                "color": "black",
+                "weight": 1,
+                "dashArray": "5, 5"
+            },
             tooltip=folium.features.GeoJsonTooltip(
-                fields=['shapeName'],
-                aliases=['Region:']
+                fields=['shapeName', selected_diseases[0]],
+                aliases=['Region:', f'{selected_diseases[0].replace("_", " ").title()}:'],
+                localize=True
             )
         ).add_to(m)
 
-        st_folium(m, width=800, height=600)
+        folium.LayerControl().add_to(m)
+        st_folium(m, width=900, height=650)
 
     except Exception as e:
         st.error(f"Map error: {e}")
@@ -176,31 +191,34 @@ else:
 st.subheader("6. Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
 
-# --- SECTION 7: Interactive Model Performance Heatmap ---
+# --- SECTION 7: Corrected Interactive Model Performance Heatmap ---
 st.subheader("7. Interactive Model Performance Heatmap")
 
 if not metrics_df.empty:
-    st.write("Available columns in metrics_df:", metrics_df.columns.tolist())
-
     try:
-        if 'model' in metrics_df.columns.str.lower().tolist():
-            metrics_pivot = metrics_df.pivot(index='model', columns='metric', values='value')
-        elif 'Model' in metrics_df.columns:
-            metrics_pivot = metrics_df.pivot(index='Model', columns='Metric', values='Value')
-        else:
-            st.error("Cannot find expected 'Model' and 'Metric' columns in performance metrics.")
-            metrics_pivot = None
+        pivot_df = metrics_df.pivot(index='Model', columns='Metric', values='Value')
 
-        if metrics_pivot is not None:
-            fig_perf = px.imshow(metrics_pivot, text_auto=True, color_continuous_scale='RdBu',
-                                 aspect='auto', title="Model Performance Across Evaluation Metrics")
-            fig_perf.update_layout(width=800, height=600,
-                                   xaxis_title="Metrics", yaxis_title="Model",
-                                   coloraxis_colorbar=dict(title="Score"))
-            st.plotly_chart(fig_perf, use_container_width=True)
+        fig_perf = px.imshow(
+            pivot_df,
+            text_auto=".2f",
+            color_continuous_scale='RdBu',
+            aspect='auto',
+            title="Model Performance Heatmap"
+        )
+
+        fig_perf.update_layout(
+            width=800,
+            height=600,
+            xaxis_title="Metrics",
+            yaxis_title="Models",
+            coloraxis_colorbar=dict(title="Score"),
+            xaxis=dict(side="top", tickangle=45),
+            yaxis=dict(autorange="reversed")
+        )
+        st.plotly_chart(fig_perf, use_container_width=True)
 
     except Exception as e:
-        st.error(f"Failed to pivot and plot model performance: {e}")
+        st.error(f"Failed to plot model performance heatmap: {e}")
 
 else:
     st.warning("Model performance data not available.")
