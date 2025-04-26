@@ -159,9 +159,13 @@ def main():
     
     # Data processing
     current_data = df[(
-        df['region'].isin(selected_regions)) &
+        df['region'].isin(selected_regions)) & 
         (df['date'].dt.date == selected_date)
     ]
+    
+    # Prepare choropleth data
+    choropleth_data = current_data.groupby('region', as_index=False)[selected_disease].mean()
+    choropleth_data.columns = ['Region', 'Value']
     
     # Main display
     st.title("🇬🇭 Ghana Infectious Disease Surveillance")
@@ -178,7 +182,12 @@ def main():
                 color='region',
                 labels={'date': 'Timeline', selected_disease: 'Cases per 100k'},
                 height=500,
+                width=1200,
                 line_shape="spline"
+            )
+            fig.update_layout(
+                autosize=True,
+                margin=dict(l=20, r=20, t=20, b=20)
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
@@ -186,8 +195,40 @@ def main():
     
     # Section 2: Geospatial Analysis
     with st.expander("Regional Disease Distribution", expanded=True):
-        # Prepare choropleth data
-        choropleth_data = current_data.groupby('region', as_index=False)[selected_disease].mean()
-        choropleth_data.columns = ['
-::contentReference[oaicite:0]{index=0}
- 
+        if not choropleth_data.empty:
+            m = create_choropleth(choropleth_data, geojson, selected_disease)
+            st_folium(m, width=500, height=900)
+        else:
+            st.warning("No regional data available for selected filters")
+
+    # Section 3: Correlation Analysis
+    with st.expander("Correlation Matrix", expanded=False):
+        numeric_cols = ['hiv_incidence', 'malaria_incidence', 'tb_incidence', 'education_access_index',
+                       'condom_use_rate', 'female_literacy_rate', 'youth_unemployment_rate',
+                       'hiv_awareness_index', 'access_to_art_pct', 'testing_coverage_pct',
+                       'health_facility_density', 'urbanization_level']
+        corr_matrix = df[numeric_cols].corr()
+        fig = px.imshow(corr_matrix, text_auto=True, aspect="auto", 
+                       color_continuous_scale='RdBu_r', zmin=-1, zmax=1)
+        fig.update_layout(title='Correlation Matrix of Health Indicators', 
+                         width=800, height=800)
+        st.plotly_chart(fig, use_container_width=True)
+
+    # Section 4: Model Performance
+    with st.expander("Model Performance Metrics", expanded=False):
+        if not metrics_df.empty:
+            fig = px.bar(metrics_df, x='Model', y=['RMSE', 'MAE', 'MAPE'], 
+                        title='Model Error Metrics Comparison', 
+                        barmode='group', height=500)
+            st.plotly_chart(fig, use_container_width=True)
+
+            fig = px.scatter(metrics_df, x='RMSE', y='R2', color='Model', 
+                            title='RMSE vs R² Score for Models', 
+                            labels={'RMSE': 'Root Mean Square Error', 'R2': 'R-squared Value'},
+                            hover_name='Model')
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.warning("Model performance data not available")
+
+if __name__ == "__main__":
+    main()
