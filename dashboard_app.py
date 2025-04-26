@@ -167,7 +167,7 @@ if not df_single.empty and selected_diseases:
         ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        st_folium(m, width=1000, height=1600)
+        st_folium(m, width=800, height=1200)
 
     except Exception as e:
         st.error(f"Map error: {e}")
