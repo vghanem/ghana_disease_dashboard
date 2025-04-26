@@ -88,6 +88,7 @@ else:
     st.plotly_chart(fig1, use_container_width=True)
 
 # --- SECTION 2: Corrected Interactive Choropleth Map ---
+# Correct Section 2 Map
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
@@ -96,14 +97,15 @@ if not df_single.empty and selected_diseases:
         gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
         gdf['shapeName'] = gdf['shapeName'].str.upper()
 
-        merged = gdf.set_index('shapeName').join(
-            latest.set_index('region')
-        ).reset_index()
+        merged = gdf.merge(
+            latest, how='left',
+            left_on='shapeName', right_on='region'
+        )
 
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
 
         folium.Choropleth(
-            geo_data=merged,
+            geo_data=json.loads(merged.to_json()),  # <--- IMPORTANT: use geoJSON here, not DataFrame
             data=merged,
             columns=['shapeName', selected_diseases[0]],
             key_on='feature.properties.shapeName',
@@ -117,7 +119,7 @@ if not df_single.empty and selected_diseases:
         ).add_to(m)
 
         folium.GeoJson(
-            merged,
+            json.loads(merged.to_json()),
             name="Regions",
             style_function=lambda feature: {
                 "fillOpacity": 0,
@@ -133,7 +135,7 @@ if not df_single.empty and selected_diseases:
         ).add_to(m)
 
         folium.LayerControl().add_to(m)
-        st_folium(m, width=900, height=650)
+        st_folium(m, width=1000, height=700)
 
     except Exception as e:
         st.error(f"Map error: {e}")
