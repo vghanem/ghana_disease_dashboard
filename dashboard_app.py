@@ -6,6 +6,13 @@ import folium
 from streamlit_folium import st_folium
 import json
 
+# --- PAGE CONFIG ---
+st.set_page_config(
+    page_title="Ghana Disease Trends Dashboard",
+    page_icon="📈",
+    layout="wide"
+)
+
 # --- DATA LOADING FUNCTIONS ---
 @st.cache_data
 def load_main_data():
@@ -32,13 +39,6 @@ def load_forecast():
 def load_metrics():
     return pd.read_csv("model_performance_metrics.csv")
 
-# --- HELPER FUNCTION ---
-def get_region_centroid(region_geojson):
-    coords = region_geojson['geometry']['coordinates'][0]
-    lats = [coord[1] for coord in coords]
-    lons = [coord[0] for coord in coords]
-    return [sum(lats)/len(lats), sum(lons)/len(lons)]
-
 # --- LOAD DATA ---
 df = load_main_data()
 geojson_data = load_geojson()
@@ -56,7 +56,6 @@ disease_opts = ['hiv_incidence', 'malaria_incidence', 'tb_incidence']
 select_all_diseases = st.sidebar.checkbox("Select all diseases", True)
 selected_diseases = st.sidebar.multiselect("Disease", disease_opts, default=disease_opts if select_all_diseases else [])
 
-# --- DATE RANGE FILTER ---
 min_date = df['date'].min().date()
 max_date = df['date'].max().date()
 date_range = st.sidebar.date_input("Date Range", [min_date, max_date])
@@ -87,25 +86,24 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Corrected Interactive Choropleth Map ---
+    # --- DOWNLOAD FILTERED DATA ---
+    csv = df_time.to_csv(index=False).encode('utf-8')
+    st.download_button("📥 Download Filtered Data", csv, "filtered_disease_data.csv", "text/csv")
+
+# --- SECTION 2: Interactive Choropleth Map ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 if not df_single.empty and selected_diseases:
     latest = df_single.groupby('region').last().reset_index()
-
     try:
-        # Load GeoJSON as GeoDataFrame
         gdf = gpd.read_file("geoBoundaries-GHA-ADM1_simplified.geojson")
         gdf['shapeName'] = gdf['shapeName'].str.upper()
-
-        # Merge data
-        merged = gdf.set_index('shapeName').join(
-            latest.set_index('region')
-        ).reset_index()
+        merged = gdf.set_index('shapeName').join(latest.set_index('region')).reset_index()
 
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
 
         folium.Choropleth(
-            geo_data=merged,
+            geo_data=merged.to_json(),
+            name='choropleth',
             data=merged,
             columns=['shapeName', selected_diseases[0]],
             key_on='feature.properties.shapeName',
@@ -119,7 +117,7 @@ if not df_single.empty and selected_diseases:
         ).add_to(m)
 
         folium.GeoJson(
-            merged,
+            merged.to_json(),
             name="Regions",
             style_function=lambda feature: {
                 "fillOpacity": 0,
@@ -146,9 +144,7 @@ else:
 st.subheader("3. Behavioral & Demographic Correlation")
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox("Choose variable", 
-                               ['education_access_index','condom_use_rate',
-                                'urbanization_level','hiv_awareness_index',
-                                'youth_unemployment_rate'])
+        ['education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate'])
     fig2 = px.scatter(df_single, x=selected_var, y=selected_diseases[0], color='region')
     st.plotly_chart(fig2, use_container_width=True)
 else:
@@ -156,30 +152,24 @@ else:
 
 # --- SECTION 4: Correlation Heatmap ---
 st.subheader("4. Correlation Heatmap of Key Predictors")
-numeric_cols = ['hiv_incidence', 'malaria_incidence', 'tb_incidence', 
-               'education_access_index', 'condom_use_rate', 
-               'female_literacy_rate', 'youth_unemployment_rate',
-               'hiv_awareness_index', 'access_to_art_pct', 
-               'testing_coverage_pct', 'health_facility_density', 
-               'urbanization_level']
+numeric_cols = ['hiv_incidence', 'malaria_incidence', 'tb_incidence', 'education_access_index', 'condom_use_rate', 
+                'female_literacy_rate', 'youth_unemployment_rate', 'hiv_awareness_index', 'access_to_art_pct', 
+                'testing_coverage_pct', 'health_facility_density', 'urbanization_level']
 corr = df[numeric_cols].corr()
-fig = px.imshow(corr, text_auto=True, aspect='auto', color_continuous_scale='RdBu_r',
-                range_color=(-1, 1), labels=dict(color="Correlation"),
-                title="Correlation Heatmap: Health Indicators & Disease Incidence")
+fig = px.imshow(corr, text_auto=True, aspect='auto', color_continuous_scale='RdBu_r', range_color=(-1, 1), 
+                labels=dict(color="Correlation"), title="Correlation Heatmap: Health Indicators & Disease Incidence")
 fig.update_layout(width=800, height=700, xaxis_title="Variables", yaxis_title="Variables",
                   coloraxis_colorbar=dict(title="Correlation", thickness=25, len=0.75, yanchor="top", y=0.9))
 fig.update_xaxes(tickangle=45)
-fig.update_traces(hoverongaps=False)
 st.plotly_chart(fig, use_container_width=True)
 
 # --- SECTION 5: Forecasts ---
 st.subheader("5. Disease Incidence Forecasts (2030)")
 if not forecast_df.empty:
-    forecast_cols = forecast_df.columns.tolist()
-    y_col = [col for col in forecast_cols if 'predict' in col.lower()]
+    y_col = [col for col in forecast_df.columns if 'predict' in col.lower()]
     if y_col:
-        fig5 = px.bar(forecast_df, x='region', y=y_col[0], color='region',
-                     barmode='group', title='Projected 2030 Disease Incidence by Region')
+        fig5 = px.bar(forecast_df, x='region', y=y_col[0], color='region', barmode='group', 
+                     title='Projected 2030 Disease Incidence by Region')
         fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate', xaxis_tickangle=-45)
         st.plotly_chart(fig5, use_container_width=True)
     else:
@@ -191,47 +181,33 @@ else:
 st.subheader("6. Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
 
-# --- SECTION 7: Corrected Interactive Model Performance Heatmap ---
+# --- SECTION 7: Model Performance Heatmap ---
 st.subheader("7. Interactive Model Performance Heatmap")
-
 if not metrics_df.empty:
     try:
-        pivot_df = metrics_df.pivot(index='Model', columns='Metric', values='Value')
+        metrics_long = metrics_df.melt(id_vars="Model", var_name="Metric", value_name="Value")
+        pivot_df = metrics_long.pivot(index="Model", columns="Metric", values="Value")
 
-        fig_perf = px.imshow(
-            pivot_df,
-            text_auto=".2f",
-            color_continuous_scale='RdBu',
-            aspect='auto',
-            title="Model Performance Heatmap"
-        )
-
-        fig_perf.update_layout(
-            width=800,
-            height=600,
-            xaxis_title="Metrics",
-            yaxis_title="Models",
-            coloraxis_colorbar=dict(title="Score"),
-            xaxis=dict(side="top", tickangle=45),
-            yaxis=dict(autorange="reversed")
-        )
+        fig_perf = px.imshow(pivot_df, text_auto=".2f", color_continuous_scale='RdBu', aspect='auto', 
+                             title="Model Performance Heatmap")
+        fig_perf.update_layout(width=800, height=600, xaxis_title="Metrics", yaxis_title="Models",
+                               coloraxis_colorbar=dict(title="Score"), xaxis=dict(side="top", tickangle=45), 
+                               yaxis=dict(autorange="reversed"))
         st.plotly_chart(fig_perf, use_container_width=True)
 
     except Exception as e:
-        st.error(f"Failed to plot model performance heatmap: {e}")
-
+        st.error(f"Failed to pivot and plot model performance: {e}")
 else:
     st.warning("Model performance data not available.")
 
-# --- SECTION 8: Granular HIV Trends by Region Over Time ---
+# --- SECTION 8: Granular HIV Heatmap ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
 try:
     hiv_heatmap_data = df[['date', 'region', 'hiv_incidence']]
     hiv_heatmap_data = hiv_heatmap_data.groupby(['region', 'date'])['hiv_incidence'].mean().reset_index()
     heatmap_pivot = hiv_heatmap_data.pivot(index='region', columns='date', values='hiv_incidence')
-    fig_hiv = px.imshow(heatmap_pivot, labels=dict(x="Date", y="Region", color="HIV Incidence"),
-                        aspect='auto', color_continuous_scale='Viridis',
-                        title="Granular View: Monthly HIV Incidence by Region (1970–2020)")
+    fig_hiv = px.imshow(heatmap_pivot, labels=dict(x="Date", y="Region", color="HIV Incidence"), aspect='auto', 
+                        color_continuous_scale='Viridis', title="Granular View: Monthly HIV Incidence by Region (1970–2020)")
     fig_hiv.update_layout(width=1000, height=700, xaxis=dict(tickangle=-45, nticks=25), yaxis=dict(autorange="reversed"))
     st.plotly_chart(fig_hiv, use_container_width=True)
 except Exception as e:
@@ -239,4 +215,4 @@ except Exception as e:
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("🌐 *Developed by Valentine Ghanem | MSc Public Health & Data Science*")
+st.markdown("🌐 Developed by **Valentine Ghanem** | MSc Public Health & Data Science")
