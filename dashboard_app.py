@@ -86,11 +86,20 @@ if not df_single.empty and selected_diseases:
         merged = gdf.merge(regional_totals, left_on='shapeName', right_on='region')
 
         fig, ax = plt.subplots(figsize=(10, 10))
-        merged.plot(column=selected_diseases[0], cmap='Reds', linewidth=0.8, edgecolor='0.8', legend=True,
-                    legend_kwds={'label': f"{selected_diseases[0].replace('_', ' ').title()} by Region"}, ax=ax)
+        merged.plot(
+            column=selected_diseases[0],
+            cmap='Reds',
+            linewidth=0.8,
+            edgecolor='0.8',
+            legend=True,
+            legend_kwds={'label': f"{selected_diseases[0].replace('_', ' ').title()} by Region"},
+            ax=ax
+        )
 
         for idx, row in merged.iterrows():
-            rep_point = row['geometry'].representative_point() if row['geometry'].geom_type == 'MultiPolygon' else row['geometry'].centroid
+            if row['geometry'].is_empty or row['geometry'].isna().any():
+                continue
+            rep_point = row['geometry'].representative_point()
             ax.annotate(s=row['region'], xy=(rep_point.x, rep_point.y), ha='center', fontsize=8, weight='bold')
 
         ax.set_title(f"Choropleth Map: {selected_diseases[0].replace('_', ' ').title()} Across Ghanaian Regions (10 Regions)")
