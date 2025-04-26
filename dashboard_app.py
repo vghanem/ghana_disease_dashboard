@@ -87,35 +87,24 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Corrected & Upgraded Interactive Choropleth Map ---
+# --- SECTION 2: Corrected & Final Interactive Choropleth Map ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
-
-# Mapping between CSV and GeoJSON regions
-region_name_mapping = {
-    "ASHANTI": "Ashanti Region",
-    "BRONG AHAFO": "Brong Ahafo Region",
-    "CENTRAL": "Central Region",
-    "EASTERN": "Eastern Region",
-    "GREATER ACCRA": "Greater Accra Region",
-    "NORTHERN": "Northern Region",
-    "UPPER EAST": "Upper East Region",
-    "UPPER WEST": "Upper West Region",
-    "VOLTA": "Volta Region",
-    "WESTERN": "Western Region"
-}
 
 if not df_single.empty and selected_diseases:
     latest = df_single.copy()
-    latest['region'] = latest['region'].map(region_name_mapping)  # Map CSV region to match GeoJSON
+    latest['region'] = latest['region'].str.strip().str.title()  # Standardize formatting
 
     try:
         gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
-        gdf['shapeName'] = gdf['shapeName'].str.upper()
 
+        # Correct the GeoJSON region names: remove " Region" and title-case
+        gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
+
+        # Merge latest data into GeoDataFrame
         merged = gdf.merge(
             latest, how='left',
-            left_on=gdf['shapeName'].str.upper(),
-            right_on=latest['region'].str.upper()
+            left_on='shapeName',
+            right_on='region'
         )
 
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
@@ -135,7 +124,7 @@ if not df_single.empty and selected_diseases:
         )
         choropleth.add_to(m)
 
-        # Add region highlighting and popups
+        # Add beautiful highlight and tooltip effects
         style_function = lambda x: {
             'fillColor': '#ffffff',
             'color': 'black',
