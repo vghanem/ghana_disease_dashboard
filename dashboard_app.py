@@ -87,102 +87,97 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
+# --- SECTION 2: Regional Distribution Map (Independent Dropdown) ---
 
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
-st.markdown("### Select Disease to Display on the Map")
+# 👉 Place Map Disease Dropdown (completely independent)
 map_disease_option = st.selectbox(
-    "Choose disease prevalence for map shading:",
+    "Select disease to display on the map (only affects the map, not sidebar filters):",
     options=['hiv_incidence', 'malaria_incidence', 'tb_incidence'],
     index=0
 )
 
-if not df_single.empty:
-    try:
-        latest = df_single.copy()
-        latest['region'] = latest['region'].str.strip().str.title()
+try:
+    # --- Data Preparation ---
+    latest = df.copy()
+    latest['region'] = latest['region'].str.strip().str.title()
 
-        gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
+    gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
+    gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
+    gdf['shapeName'] = gdf['shapeName'].replace({'Brong Ahafo': 'Brong-Ahafo'})
 
-        # Standardize GeoJSON region names
-        gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
-        gdf['shapeName'] = gdf['shapeName'].replace({'Brong Ahafo': 'Brong-Ahafo'})  # 🔥 Fix hyphen
+    # Only get latest date per region
+    latest_filtered = latest.sort_values('date').groupby('region').last().reset_index()
 
-        # Merge CSV with GeoJSON
-        merged = gdf.merge(
-            latest, how='left',
-            left_on='shapeName',
-            right_on='region'
+    merged = gdf.merge(
+        latest_filtered, how='left',
+        left_on='shapeName',
+        right_on='region'
+    )
+
+    if 'date' in merged.columns:
+        merged = merged.drop(columns=['date'])
+
+    # --- Dynamic Color Scheme ---
+    if map_disease_option == 'hiv_incidence':
+        color_scale = 'Purples'
+    elif map_disease_option == 'malaria_incidence':
+        color_scale = 'Greens'
+    elif map_disease_option == 'tb_incidence':
+        color_scale = 'Blues'
+    else:
+        color_scale = 'YlOrRd'
+
+    # --- Draw Map ---
+    m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
+
+    choropleth = folium.Choropleth(
+        geo_data=json.loads(merged.to_json()),
+        data=merged,
+        columns=['shapeName', map_disease_option],
+        key_on='feature.properties.shapeName',
+        fill_color=color_scale,
+        fill_opacity=0.8,
+        line_opacity=0.2,
+        nan_fill_color='white',
+        legend_name=f"{map_disease_option.replace('_', ' ').title()} per 100k",
+        highlight=True,
+        line_color='black'
+    )
+    choropleth.add_to(m)
+
+    style_function = lambda x: {
+        'fillColor': '#ffffff',
+        'color': 'black',
+        'fillOpacity': 0,
+        'weight': 1
+    }
+
+    highlight_function = lambda x: {
+        'fillColor': '#000000',
+        'color': '#000000',
+        'fillOpacity': 0.5,
+        'weight': 3
+    }
+
+    folium.GeoJson(
+        merged,
+        style_function=style_function,
+        highlight_function=highlight_function,
+        tooltip=folium.features.GeoJsonTooltip(
+            fields=['shapeName', map_disease_option],
+            aliases=['Region:', f'{map_disease_option.replace("_", " ").title()}:'],
+            localize=True,
+            sticky=True
         )
+    ).add_to(m)
 
-        # Drop Timestamp columns
-        if 'date' in merged.columns:
-            merged = merged.drop(columns=['date'])
+    folium.LayerControl().add_to(m)
+    st_folium(m, width=1200, height=700)
 
-        # --- Dynamic Color Scheme based on selected disease ---
-        if map_disease_option == 'hiv_incidence':
-            color_scale = 'Purples'
-        elif map_disease_option == 'malaria_incidence':
-            color_scale = 'Greens'
-        elif map_disease_option == 'tb_incidence':
-            color_scale = 'Blues'
-        else:
-            color_scale = 'YlOrRd'
-
-        # Create the map
-        m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
-
-        choropleth = folium.Choropleth(
-            geo_data=json.loads(merged.to_json()),
-            data=merged,
-            columns=['shapeName', map_disease_option],
-            key_on='feature.properties.shapeName',
-            fill_color=color_scale,
-            fill_opacity=0.8,
-            line_opacity=0.2,
-            nan_fill_color='white',
-            legend_name=f"{map_disease_option.replace('_', ' ').title()} per 100k",
-            highlight=True,
-            line_color='black'
-        )
-        choropleth.add_to(m)
-
-        # Region Hover Effects
-        style_function = lambda x: {
-            'fillColor': '#ffffff',
-            'color': 'black',
-            'fillOpacity': 0,
-            'weight': 1
-        }
-
-        highlight_function = lambda x: {
-            'fillColor': '#000000',
-            'color': '#000000',
-            'fillOpacity': 0.5,
-            'weight': 3
-        }
-
-        folium.GeoJson(
-            merged,
-            style_function=style_function,
-            highlight_function=highlight_function,
-            tooltip=folium.features.GeoJsonTooltip(
-                fields=['shapeName', map_disease_option],
-                aliases=['Region:', f'{map_disease_option.replace("_", " ").title()}:'],
-                localize=True,
-                sticky=True
-            )
-        ).add_to(m)
-
-        folium.LayerControl().add_to(m)
-        st_folium(m, width=1000, height=700)
-
-    except Exception as e:
-        st.error(f"Map error: {e}")
-
-else:
-    st.warning("Select a disease and ensure data is available.")
+except Exception as e:
+    st.error(f"Map error: {e}")
 
 
 
