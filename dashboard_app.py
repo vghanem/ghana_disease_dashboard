@@ -87,26 +87,37 @@ else:
     fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
-# --- SECTION 2: Corrected & Final Interactive Choropleth Map ---
+# --- SECTION 2: Corrected, Final, Dynamic Choropleth Map ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
 if not df_single.empty and selected_diseases:
     latest = df_single.copy()
-    latest['region'] = latest['region'].str.strip().str.title()  # Standardize formatting
+    latest['region'] = latest['region'].str.strip().str.title()  # Standardize CSV region names
 
     try:
         gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
 
-        # Correct the GeoJSON region names: remove " Region" and title-case
+        # Standardize GeoJSON region names
         gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
 
-        # Merge latest data into GeoDataFrame
+        # Merge CSV with GeoJSON
         merged = gdf.merge(
             latest, how='left',
             left_on='shapeName',
             right_on='region'
         )
 
+        # --- Dynamic Color Scheme based on selected disease ---
+        if selected_diseases[0] == 'hiv_incidence':
+            color_scale = 'Purples'
+        elif selected_diseases[0] == 'malaria_incidence':
+            color_scale = 'Greens'
+        elif selected_diseases[0] == 'tb_incidence':
+            color_scale = 'Blues'
+        else:
+            color_scale = 'YlOrRd'  # Default
+
+        # Create the map
         m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
 
         choropleth = folium.Choropleth(
@@ -114,7 +125,7 @@ if not df_single.empty and selected_diseases:
             data=merged,
             columns=['shapeName', selected_diseases[0]],
             key_on='feature.properties.shapeName',
-            fill_color='YlOrRd',
+            fill_color=color_scale,
             fill_opacity=0.8,
             line_opacity=0.2,
             nan_fill_color='white',
@@ -124,7 +135,7 @@ if not df_single.empty and selected_diseases:
         )
         choropleth.add_to(m)
 
-        # Add beautiful highlight and tooltip effects
+        # Region Hover Effects
         style_function = lambda x: {
             'fillColor': '#ffffff',
             'color': 'black',
@@ -158,6 +169,7 @@ if not df_single.empty and selected_diseases:
         st.error(f"Map error: {e}")
 else:
     st.warning("Select a disease and ensure data is available.")
+
 
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
