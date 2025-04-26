@@ -1,4 +1,11 @@
 import streamlit as st
+
+st.set_page_config(
+    page_title="Ghana Infectious Disease Dashboard",
+    layout="wide",  # Force full screen width
+    initial_sidebar_state="expanded"
+)
+
 import pandas as pd
 import geopandas as gpd
 import plotly.express as px
@@ -84,7 +91,7 @@ elif df_time.empty:
     st.warning("No data available for selected filters.")
 else:
     fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-    fig1.update_layout(width=1200, height=600, xaxis=dict(tickangle=-45))
+    fig1.update_layout(width=1400, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
@@ -161,6 +168,8 @@ try:
 
 except Exception as e:
     st.error(f"Map error: {e}")
+    st.markdown("---")  # Only if you want light separator
+
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
@@ -186,7 +195,7 @@ corr = df[numeric_cols].corr()
 fig = px.imshow(corr, text_auto=True, aspect='auto', color_continuous_scale='RdBu_r',
                 range_color=(-1, 1), labels=dict(color="Correlation"),
                 title="Correlation Heatmap: Health Indicators & Disease Incidence")
-fig.update_layout(width=800, height=700, xaxis_title="Variables", yaxis_title="Variables",
+fig.update_layout(width=1400, height=700, xaxis_title="Variables", yaxis_title="Variables",
                   coloraxis_colorbar=dict(title="Correlation", thickness=25, len=0.75, yanchor="top", y=0.9))
 fig.update_xaxes(tickangle=45)
 fig.update_traces(hoverongaps=False)
