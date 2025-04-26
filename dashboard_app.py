@@ -5,9 +5,23 @@ import folium
 from streamlit_folium import st_folium
 import json
 from branca.colormap import LinearColormap
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # List of the 10 original regions (uppercase)
 original_regions = ['UPPER WEST', 'UPPER EAST', 'NORTHERN', 'BRONG-AHAFO', 'ASHANTI', 'EASTERN', 'WESTERN', 'CENTRAL', 'GREATER ACCRA', 'VOLTA']
+
+# Mapping of new region names to their parent original regions
+region_mapping = {
+    'AHAFO': 'BRONG-AHAFO',
+    'BONO': 'BRONG-AHAFO',
+    'BONO EAST': 'BRONG-AHAFO',
+    'WESTERN NORTH': 'WESTERN',
+    'OTI': 'VOLTA',
+    'NORTH EAST': 'NORTHERN',
+    'SAVANNAH': 'NORTHERN'
+}
 
 # Region configuration
 REGION_MAPPING = {
@@ -34,10 +48,29 @@ def load_main_data():
 def load_geojson():
     with open("geoBoundaries-GHA-ADM1_simplified.geojson") as f:
         gj = json.load(f)
-        gj['features'] = [feat for feat in gj['features']
-                          if feat['properties']['shapeName'].lower() in original_regions]
-        for feat in gj['features']:
-            feat['properties']['shapeName'] = feat['properties']['shapeName'].upper()
+        valid_features = []
+        mapped_warnings = []
+        dropped = set()
+        for feature in gj['features']:
+            original_name = feature['properties']['shapeName'].title()  # Convert to title case
+            mapped_name = REGION_MAPPING.get(original_name, original_name).upper()
+            if mapped_name in original_regions:
+                feature['properties']['shapeName'] = mapped_name
+                valid_features.append(feature)
+            elif original_name.upper() in region_mapping:
+                new_region = region_mapping[original_name.upper()]
+                feature['properties']['shapeName'] = new_region
+                valid_features.append(feature)
+                mapped_warnings.append(f"{original_name} → {new_region}")
+            else:
+                dropped.add(original_name.upper())
+        
+        if mapped_warnings:
+            st.warning(f"Mapped regions: {', '.join(mapped_warnings)}")
+        if dropped:
+            st.warning(f"Dropped regions: {', '.join(sorted(dropped))}")
+        
+        gj['features'] = valid_features
         return gj
 
 # Load forecasts and metrics
@@ -186,10 +219,4 @@ if not metrics_df.empty:
                       title="ML Model Performance Metrics",
                       labels=dict(color="Score"), x=metrics_df.columns[1:], y=metrics_df['Model'])
     fig_mm.update_layout(height=500)
-    st.plotly_chart(fig_mm, use_container_width=True)
-else:
-    st.warning("No model metrics data available for visualization.")
-
-# Footer
-st.markdown("---")
-st.markdown("*Developed by Valentine Ghanem | MSc Public Health & Data Science*")
+    st.plot
