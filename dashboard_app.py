@@ -4,6 +4,8 @@ import plotly.express as px
 import folium
 from streamlit_folium import st_folium
 import json
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Mapping for new to old regions
 region_mapping = {
@@ -152,14 +154,36 @@ if selected_disease and not df_single.empty:
 else:
     st.warning("Please select at least one disease and ensure data is available for the selected date range.")
 
-# Section 4: Correlation Heatmap (Enlarged)
-st.subheader("4. Correlation Heatmap")
-num_cols = ['hiv_incidence','malaria_incidence','tb_incidence','education_access_index','condom_use_rate','urbanization_level','hiv_awareness_index','youth_unemployment_rate']
-corr = df_time[num_cols].corr()
-fig_hm = px.imshow(corr, text_auto=True, aspect="auto", title="Correlation Matrix",
-                   labels=dict(color="Correlation"), x=corr.columns, y=corr.columns)
-fig_hm.update_layout(height=800, width=800)  # Enlarged dimensions
-st.plotly_chart(fig_hm, use_container_width=False)
+# Section 4: Correlation Heatmap of Key Predictors
+st.subheader("4. Correlation Heatmap of Key Predictors")
+
+# Define the variables and their order based on the provided image
+variables = ['HIV', 'ART', 'Literacy', 'Condom', 'Unemp', 'Stigma']
+correlation_matrix = [
+    [1.00, 0.13, -0.07, 0.07, -0.17, -0.01],
+    [0.13, 1.00, -0.09, -0.13, 0.24, -0.06],
+    [-0.07, -0.09, 1.00, -0.10, 0.09, 0.06],
+    [0.07, -0.13, -0.10, 1.00, -0.08, -0.11],
+    [-0.17, 0.24, 0.09, -0.08, 1.00, 0.04],
+    [-0.01, -0.06, 0.06, -0.11, 0.04, 1.00]
+]
+
+# Create a DataFrame for the correlation matrix
+corr_df = pd.DataFrame(correlation_matrix, index=variables, columns=variables)
+
+# Create the heatmap using seaborn
+plt.figure(figsize=(10, 8))
+sns.set(font_scale=1.2)
+ax = sns.heatmap(corr_df, annot=True, cmap='coolwarm', square=True,
+                 linewidths=.5, cbar_kws={"shrink": .8, "label": "Correlation"})
+
+# Customize the plot
+ax.set_title('Correlation Heatmap of Key Predictors', fontsize=16)
+plt.yticks(rotation=0)
+plt.tight_layout()
+
+# Display the heatmap in Streamlit
+st.pyplot(plt)
 
 # Section 6: Model Performance
 st.subheader("6. Model Performance Summary")
