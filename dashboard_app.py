@@ -254,40 +254,44 @@ else:
 
 import plotly.graph_objects as go
 
+import plotly.graph_objects as go
+
 st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled)")
 
 # Model options
-model_options = ['All Models', 'Ridge Regression', 'Random Forest', 'XGBoost', 'Support Vector Regression (SVR)']
+model_options = ['All Models', 'Random Forest', 'XGBoost', 'Ridge Regression', 'Support Vector Regression (SVR)']
 
 # Dropdown for model selection
 selected_model = st.selectbox(
     "Select a model to visualize:",
     model_options,
-    index=0
+    index=0,
+    key="model_selectbox"  # ✅ Unique key to avoid StreamlitDuplicateElementId error
 )
 
 # Radar chart categories
 categories = ['R²', 'RMSE', 'MAE', 'MAPE']
 
-# Example model scores (replace with your real values)
+# Final real model scores
 model_scores = {
-    'Ridge Regression': [0.85, 0.35, 0.30, 0.28],
-    'Random Forest': [0.92, 0.28, 0.25, 0.24],
-    'XGBoost': [0.93, 0.26, 0.22, 0.23],
-    'Support Vector Regression (SVR)': [0.88, 0.32, 0.29, 0.27]
+    'Random Forest': [0.9821, 6.39, 4.64, 2.56],
+    'XGBoost': [0.9813, 6.54, 4.77, 2.64],
+    'Ridge Regression': [0.9640, 9.08, 6.69, 3.69],
+    'Support Vector Regression (SVR)': [0.9686, 8.47, 5.90, 3.17]
 }
 
 # Define consistent colors for each model
 model_colors = {
-    'Ridge Regression': 'deepskyblue',
     'Random Forest': 'dodgerblue',
     'XGBoost': 'lightcoral',
+    'Ridge Regression': 'deepskyblue',
     'Support Vector Regression (SVR)': 'red'
 }
 
+# Create radar chart figure
 fig = go.Figure()
 
-# Plot based on selection
+# Plot based on model selection
 if selected_model == 'All Models':
     for model_name, scores in model_scores.items():
         fig.add_trace(go.Scatterpolar(
@@ -296,7 +300,7 @@ if selected_model == 'All Models':
             fill='toself',
             name=model_name,
             line=dict(color=model_colors[model_name]),
-            opacity=0.4  # 🌟 Translucent shading
+            opacity=0.4  # 🌟 Translucent shading for beauty
         ))
 else:
     fig.add_trace(go.Scatterpolar(
@@ -308,17 +312,18 @@ else:
         opacity=0.4  # 🌟 Translucent shading
     ))
 
-# Update layout
+# Update layout for better spacing, ticks, and readability
 fig.update_layout(
     polar=dict(
         radialaxis=dict(
             visible=True,
             range=[0, 1],
             showticklabels=True,
-            tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+            tickvals=[round(x * 0.1, 2) for x in range(10)] + [0.99],  # 🌟 Finer ticks: 0.00, 0.10, ..., 0.90, 0.99
+            ticktext=[f'{round(x * 0.1, 2):.2f}' for x in range(10)] + ['0.99'],  # 🌟 Tick labels with two decimals
             tickfont=dict(
                 size=12,
-                color='black',  # 🌟 Darker graduation numerals
+                color='black',
                 family='Arial'
             ),
             gridcolor='lightgrey',
@@ -331,94 +336,7 @@ fig.update_layout(
     height=800
 )
 
-st.plotly_chart(fig, use_container_width=True)
-# Final Fine-Tuned Radar Chart
-
-import plotly.graph_objects as go
-
-st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled)")
-
-# Model options
-model_options = ['All Models', 'Ridge Regression', 'Random Forest', 'XGBoost', 'Support Vector Regression (SVR)']
-
-selected_model = st.selectbox(
-    "Select a model to visualize:",
-    model_options,
-    index=0,
-    key="model_selectbox"  # ✅ Fix: unique key
-)
-
-# Dropdown for model selection
-selected_model = st.selectbox(
-    "Select a model to visualize:",
-    model_options,
-    index=0
-)
-
-# Radar chart categories
-categories = ['R²', 'RMSE', 'MAE', 'MAPE']
-
-model_scores = {
-    'Random Forest': [0.9821, 6.39, 4.64, 2.56],
-    'XGBoost': [0.9813, 6.54, 4.77, 2.64],
-    'Ridge Regression': [0.9640, 9.08, 6.69, 3.69],
-    'Support Vector Regression (SVR)': [0.9686, 8.47, 5.90, 3.17]
-}
-
-# Define consistent colors for each model
-model_colors = {
-    'Ridge Regression': 'deepskyblue',
-    'Random Forest': 'dodgerblue',
-    'XGBoost': 'lightcoral',
-    'Support Vector Regression (SVR)': 'red'
-}
-
-fig = go.Figure()
-
-# Plot based on selection
-if selected_model == 'All Models':
-    for model_name, scores in model_scores.items():
-        fig.add_trace(go.Scatterpolar(
-            r=scores,
-            theta=categories,
-            fill='toself',
-            name=model_name,
-            line=dict(color=model_colors[model_name]),
-            opacity=0.4  # 🌟 Translucent shading
-        ))
-else:
-    fig.add_trace(go.Scatterpolar(
-        r=model_scores[selected_model],
-        theta=categories,
-        fill='toself',
-        name=selected_model,
-        line=dict(color=model_colors[selected_model]),
-        opacity=0.4  # 🌟 Translucent shading
-    ))
-
-fig.update_layout(
-    polar=dict(
-        radialaxis=dict(
-            visible=True,
-            range=[0, 1],
-            showticklabels=True,
-            tickvals=[round(x * 0.1, 2) for x in range(10)] + [0.99],  # 🌟 Finer ticks: 0.00, 0.10, ..., 0.90, 0.99
-            ticktext=[f'{round(x * 0.1, 2):.2f}' for x in range(10)] + ['0.99'],  # 🌟 Tick labels with 2 decimals
-            tickfont=dict(
-                size=12,
-                color='black',
-                family='Arial'
-            ),
-            gridcolor='lightgrey',
-            gridwidth=1
-        )
-    ),
-    showlegend=True,
-    title="Interactive Model Performance Radar Chart (Scaled)",
-    width=1000,
-    height=800
-)
-
+# Display chart
 st.plotly_chart(fig, use_container_width=True)
 
 
