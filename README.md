@@ -1,6 +1,8 @@
 # ghana_disease_dashboard
 Streamlit Dashboard for Infectious Disease Trends in Ghana
-(Archived for privacy and copyright)
+## Disclaimer
+This repository is the final, archived version supporting the dissertation _'Analysis and Prediction of Infectious Disease Trends in Ghana: A Machine Learning Approach, with Emphasis on HIV/AIDS'_ by Valentine Golden Ghanem (MSc Data Science, University of East London, 2025).
+Files are subject to checksum verification. Unauthorized alteration constitutes academic misconduct.
 ## 📄 File Integrity Verification (SHA-256 Checksums)
 
 The following SHA-256 checksums are provided to verify the authenticity and integrity of critical files used in this project:
