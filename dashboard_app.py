@@ -307,25 +307,29 @@ else:
         line=dict(color=model_colors[selected_model])
     ))
 
-# Update layout
+# Adjusted radar chart with better spacing between models
+
 fig.update_layout(
     polar=dict(
         radialaxis=dict(
             visible=True,
-            range=[0, 1],
+            range=[0, 1],  # Keep scale 0-1
             showticklabels=True,
-            tickfont_size=12,
+            tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+            tickfont=dict(size=14),
             gridcolor='lightgrey',
-            gridwidth=1
+            gridwidth=1,
+            tickangle=45  # Rotate tick labels for better view
         ),
     ),
     showlegend=True,
     title="Interactive Model Performance Radar Chart (Scaled)",
-    width=900,
-    height=700
+    width=1000,
+    height=800
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
 
 
 
