@@ -254,9 +254,7 @@ else:
 
 import plotly.graph_objects as go
 
-import plotly.graph_objects as go
-
-st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled)")
+st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled and Corrected)")
 
 # Model options
 model_options = ['All Models', 'Random Forest', 'XGBoost', 'Ridge Regression', 'Support Vector Regression (SVR)']
@@ -266,18 +264,34 @@ selected_model = st.selectbox(
     "Select a model to visualize:",
     model_options,
     index=0,
-    key="model_selectbox"  # ✅ Unique key to avoid StreamlitDuplicateElementId error
+    key="model_selectbox"  # Unique key to avoid duplication
 )
 
 # Radar chart categories
 categories = ['R²', 'RMSE', 'MAE', 'MAPE']
 
-# Final real model scores
+# Final real model scores (from Table 10 of your work)
 model_scores = {
     'Random Forest': [0.9821, 6.39, 4.64, 2.56],
     'XGBoost': [0.9813, 6.54, 4.77, 2.64],
     'Ridge Regression': [0.9640, 9.08, 6.69, 3.69],
     'Support Vector Regression (SVR)': [0.9686, 8.47, 5.90, 3.17]
+}
+
+# Define expected maximum errors for scaling
+max_rmse = 10  # Max expected RMSE value
+max_mae = 10   # Max expected MAE value
+max_mape = 10  # Max expected MAPE (%) value
+
+# Scale the model scores: R² stays the same, errors are inverted and scaled
+model_scores_scaled = {
+    model: [
+        scores[0],  # R² (no scaling needed)
+        1 - (scores[1] / max_rmse),  # RMSE scaled
+        1 - (scores[2] / max_mae),   # MAE scaled
+        1 - (scores[3] / max_mape)   # MAPE scaled
+    ]
+    for model, scores in model_scores.items()
 }
 
 # Define consistent colors for each model
@@ -293,51 +307,48 @@ fig = go.Figure()
 
 # Plot based on model selection
 if selected_model == 'All Models':
-    for model_name, scores in model_scores.items():
+    for model_name, scores in model_scores_scaled.items():
         fig.add_trace(go.Scatterpolar(
             r=scores,
             theta=categories,
             fill='toself',
             name=model_name,
             line=dict(color=model_colors[model_name]),
-            opacity=0.4  # 🌟 Translucent shading for beauty
+            opacity=0.5
         ))
 else:
     fig.add_trace(go.Scatterpolar(
-        r=model_scores[selected_model],
+        r=model_scores_scaled[selected_model],
         theta=categories,
         fill='toself',
         name=selected_model,
         line=dict(color=model_colors[selected_model]),
-        opacity=0.4  # 🌟 Translucent shading
+        opacity=0.5
     ))
 
-# Update layout for better spacing, ticks, and readability
+# Update layout for better appearance
 fig.update_layout(
     polar=dict(
         radialaxis=dict(
             visible=True,
             range=[0, 1],
             showticklabels=True,
-            tickvals=[round(x * 0.1, 2) for x in range(10)] + [0.99],  # 🌟 Finer ticks: 0.00, 0.10, ..., 0.90, 0.99
-            ticktext=[f'{round(x * 0.1, 2):.2f}' for x in range(10)] + ['0.99'],  # 🌟 Tick labels with two decimals
-            tickfont=dict(
-                size=12,
-                color='black',
-                family='Arial'
-            ),
+            tickvals=[i/10 for i in range(11)],
+            tickfont=dict(size=12, color='black', family='Arial'),
             gridcolor='lightgrey',
             gridwidth=1
         ),
     ),
     showlegend=True,
-    title="Interactive Model Performance Radar Chart (Scaled)",
-    width=1000,
-    height=800
+    title="Interactive Model Performance Radar Chart (Scaled and Corrected)",
+    width=900,
+    height=800,
+    margin=dict(l=50, r=50, t=80, b=50),
 )
 
-# Display chart
+# Display the radar chart
 st.plotly_chart(fig, use_container_width=True)
+
 
 
 
@@ -359,5 +370,6 @@ except Exception as e:
 # --- FOOTER ---
 st.markdown("---")
 st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
-st.markdown("🔗 [Website](https://valentineghanem.com) | [LinkedIn](https://www.linkedin.com/in/valentineghanem/")
+st.markdown("🌐[Website](https://valentineghanem.com")
+st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
 
