@@ -341,6 +341,13 @@ st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled)")
 # Model options
 model_options = ['All Models', 'Ridge Regression', 'Random Forest', 'XGBoost', 'Support Vector Regression (SVR)']
 
+selected_model = st.selectbox(
+    "Select a model to visualize:",
+    model_options,
+    index=0,
+    key="model_selectbox"  # ✅ Fix: unique key
+)
+
 # Dropdown for model selection
 selected_model = st.selectbox(
     "Select a model to visualize:",
