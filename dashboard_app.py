@@ -250,6 +250,68 @@ if not metrics_df.empty:
         st.error(f"Failed to plot model performance heatmap: {e}")
 else:
     st.warning("Model performance data not available.")
+    # --- Subsection: Interactive Model Performance Radar Chart (Scaled) with Dropdown ---
+
+import plotly.graph_objects as go
+
+st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled)")
+
+# Model options
+model_options = ['All Models', 'Ridge Regression', 'Random Forest', 'XGBoost', 'Support Vector Regression (SVR)']
+
+# Dropdown for model selection
+selected_model = st.selectbox(
+    "Select a model to visualize:",
+    model_options,
+    index=0
+)
+
+# Radar chart categories
+categories = ['R²', 'RMSE', 'MAE', 'MAPE']
+
+# Example model scores (replace with your real values)
+model_scores = {
+    'Ridge Regression': [0.85, 0.35, 0.30, 0.28],
+    'Random Forest': [0.92, 0.28, 0.25, 0.24],
+    'XGBoost': [0.93, 0.26, 0.22, 0.23],
+    'Support Vector Regression (SVR)': [0.88, 0.32, 0.29, 0.27]
+}
+
+# Initialize the radar figure
+fig = go.Figure()
+
+# Add traces depending on selection
+if selected_model == 'All Models':
+    for model_name, scores in model_scores.items():
+        fig.add_trace(go.Scatterpolar(
+            r=scores,
+            theta=categories,
+            fill='toself',
+            name=model_name
+        ))
+else:
+    fig.add_trace(go.Scatterpolar(
+        r=model_scores[selected_model],
+        theta=categories,
+        fill='toself',
+        name=selected_model
+    ))
+
+# Update layout
+fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, 1]
+        )),
+    showlegend=True,
+    title="Interactive Model Performance Radar Chart (Scaled)",
+    width=900,
+    height=700
+)
+
+st.plotly_chart(fig, use_container_width=True)
+
 
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
