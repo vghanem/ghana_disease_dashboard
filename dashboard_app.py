@@ -349,4 +349,8 @@ except Exception as e:
 
 # --- FOOTER ---
 st.markdown("---")
-st.markdown("🌐 *Developed by Valentine Ghanem | MSc Public Health & Data Science*")
+st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
+st.markdown("""
+🔗 [Website](https://valentineghanem.com) | [LinkedIn](https://www.linkedin.com/in/valentineghanem/)
+""")
+
