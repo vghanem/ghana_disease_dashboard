@@ -250,7 +250,7 @@ if not metrics_df.empty:
         st.error(f"Failed to plot model performance heatmap: {e}")
 else:
     st.warning("Model performance data not available.")
-   # --- Subsection: Interactive Model Performance Radar Chart (Scaled) with Custom Colors ---
+ # Final Fine-Tuned Radar Chart
 
 import plotly.graph_objects as go
 
@@ -285,7 +285,6 @@ model_colors = {
     'Support Vector Regression (SVR)': 'red'
 }
 
-# Initialize radar chart
 fig = go.Figure()
 
 # Plot based on selection
@@ -296,7 +295,8 @@ if selected_model == 'All Models':
             theta=categories,
             fill='toself',
             name=model_name,
-            line=dict(color=model_colors[model_name])
+            line=dict(color=model_colors[model_name]),
+            opacity=0.4  # 🌟 Translucent shading
         ))
 else:
     fig.add_trace(go.Scatterpolar(
@@ -304,23 +304,107 @@ else:
         theta=categories,
         fill='toself',
         name=selected_model,
-        line=dict(color=model_colors[selected_model])
+        line=dict(color=model_colors[selected_model]),
+        opacity=0.4  # 🌟 Translucent shading
     ))
 
-# Adjusted radar chart with better spacing between models
+# Update layout
+fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+            visible=True,
+            range=[0, 1],
+            showticklabels=True,
+            tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
+            tickfont=dict(
+                size=12,
+                color='black',  # 🌟 Darker graduation numerals
+                family='Arial'
+            ),
+            gridcolor='lightgrey',
+            gridwidth=1
+        ),
+    ),
+    showlegend=True,
+    title="Interactive Model Performance Radar Chart (Scaled)",
+    width=1000,
+    height=800
+)
+
+st.plotly_chart(fig, use_container_width=True)
+# Final Fine-Tuned Radar Chart
+
+import plotly.graph_objects as go
+
+st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled)")
+
+# Model options
+model_options = ['All Models', 'Ridge Regression', 'Random Forest', 'XGBoost', 'Support Vector Regression (SVR)']
+
+# Dropdown for model selection
+selected_model = st.selectbox(
+    "Select a model to visualize:",
+    model_options,
+    index=0
+)
+
+# Radar chart categories
+categories = ['R²', 'RMSE', 'MAE', 'MAPE']
+
+model_scores = {
+    'Random Forest': [0.9821, 6.39, 4.64, 2.56],
+    'XGBoost': [0.9813, 6.54, 4.77, 2.64],
+    'Ridge Regression': [0.9640, 9.08, 6.69, 3.69],
+    'Support Vector Regression (SVR)': [0.9686, 8.47, 5.90, 3.17]
+}
+
+# Define consistent colors for each model
+model_colors = {
+    'Ridge Regression': 'deepskyblue',
+    'Random Forest': 'dodgerblue',
+    'XGBoost': 'lightcoral',
+    'Support Vector Regression (SVR)': 'red'
+}
+
+fig = go.Figure()
+
+# Plot based on selection
+if selected_model == 'All Models':
+    for model_name, scores in model_scores.items():
+        fig.add_trace(go.Scatterpolar(
+            r=scores,
+            theta=categories,
+            fill='toself',
+            name=model_name,
+            line=dict(color=model_colors[model_name]),
+            opacity=0.4  # 🌟 Translucent shading
+        ))
+else:
+    fig.add_trace(go.Scatterpolar(
+        r=model_scores[selected_model],
+        theta=categories,
+        fill='toself',
+        name=selected_model,
+        line=dict(color=model_colors[selected_model]),
+        opacity=0.4  # 🌟 Translucent shading
+    ))
 
 fig.update_layout(
     polar=dict(
         radialaxis=dict(
             visible=True,
-            range=[0, 1],  # Keep scale 0-1
+            range=[0, 1],
             showticklabels=True,
-            tickvals=[0, 0.2, 0.4, 0.6, 0.8, 1],
-            tickfont=dict(size=14),
+            tickvals=[round(x * 0.1, 2) for x in range(10)] + [0.99],  # 🌟 Finer ticks: 0.00, 0.10, ..., 0.90, 0.99
+            ticktext=[f'{round(x * 0.1, 2):.2f}' for x in range(10)] + ['0.99'],  # 🌟 Tick labels with 2 decimals
+            tickfont=dict(
+                size=12,
+                color='black',
+                family='Arial'
+            ),
             gridcolor='lightgrey',
-            gridwidth=1,
-            tickangle=45  # Rotate tick labels for better view
-        ),
+            gridwidth=1
+        )
     ),
     showlegend=True,
     title="Interactive Model Performance Radar Chart (Scaled)",
@@ -350,7 +434,5 @@ except Exception as e:
 # --- FOOTER ---
 st.markdown("---")
 st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
-st.markdown("""
-🔗 [Website](https://valentineghanem.com) | [LinkedIn](https://www.linkedin.com/in/valentineghanem/)
-""")
+st.markdown("🔗 [Website](https://valentineghanem.com) | [LinkedIn](https://www.linkedin.com/in/valentineghanem/")
 
