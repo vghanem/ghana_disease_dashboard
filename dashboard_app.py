@@ -250,7 +250,7 @@ if not metrics_df.empty:
         st.error(f"Failed to plot model performance heatmap: {e}")
 else:
     st.warning("Model performance data not available.")
-    # --- Subsection: Interactive Model Performance Radar Chart (Scaled) with Dropdown ---
+   # --- Subsection: Interactive Model Performance Radar Chart (Scaled) with Custom Colors ---
 
 import plotly.graph_objects as go
 
@@ -277,24 +277,34 @@ model_scores = {
     'Support Vector Regression (SVR)': [0.88, 0.32, 0.29, 0.27]
 }
 
-# Initialize the radar figure
+# Define consistent colors for each model
+model_colors = {
+    'Ridge Regression': 'deepskyblue',
+    'Random Forest': 'dodgerblue',
+    'XGBoost': 'lightcoral',
+    'Support Vector Regression (SVR)': 'red'
+}
+
+# Initialize radar chart
 fig = go.Figure()
 
-# Add traces depending on selection
+# Plot based on selection
 if selected_model == 'All Models':
     for model_name, scores in model_scores.items():
         fig.add_trace(go.Scatterpolar(
             r=scores,
             theta=categories,
             fill='toself',
-            name=model_name
+            name=model_name,
+            line=dict(color=model_colors[model_name])
         ))
 else:
     fig.add_trace(go.Scatterpolar(
         r=model_scores[selected_model],
         theta=categories,
         fill='toself',
-        name=selected_model
+        name=selected_model,
+        line=dict(color=model_colors[selected_model])
     ))
 
 # Update layout
@@ -302,8 +312,13 @@ fig.update_layout(
     polar=dict(
         radialaxis=dict(
             visible=True,
-            range=[0, 1]
-        )),
+            range=[0, 1],
+            showticklabels=True,
+            tickfont_size=12,
+            gridcolor='lightgrey',
+            gridwidth=1
+        ),
+    ),
     showlegend=True,
     title="Interactive Model Performance Radar Chart (Scaled)",
     width=900,
@@ -311,6 +326,7 @@ fig.update_layout(
 )
 
 st.plotly_chart(fig, use_container_width=True)
+
 
 
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
