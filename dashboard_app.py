@@ -372,4 +372,5 @@ st.markdown("---")
 st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
 st.markdown("🌐[Website](https://valentineghanem.com")
 st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
+st.markdown("[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)")
 
