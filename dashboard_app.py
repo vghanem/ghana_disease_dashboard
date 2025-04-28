@@ -168,8 +168,9 @@ try:
 
 except Exception as e:
     st.error(f"Map error: {e}")
-    st.markdown("---")  # Only if you want light separator
-    st.markdown("<div style='margin-top: -30px;'></div>", unsafe_allow_html=True)
+# Force a smaller vertical space
+space = st.empty()
+space.write("")  # Adds minimal vertical gap (very tight)
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
