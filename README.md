@@ -22,5 +22,6 @@ The following SHA-256 checksums are provided to verify the authenticity and inte
 
 > Ensuring file integrity is critical for maintaining the authenticity of academic and professional work.
 
----
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)
+
 
