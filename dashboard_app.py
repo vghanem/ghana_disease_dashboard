@@ -1,13 +1,3 @@
-st.markdown(
-    """
-    <style>
-    .element-container {
-        margin-bottom: -20px !important;  /* Adjust this value as needed */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 import streamlit as st
 
 st.set_page_config(
