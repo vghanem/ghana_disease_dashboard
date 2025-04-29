@@ -1,3 +1,13 @@
+st.markdown(
+    """
+    <style>
+    .element-container {
+        margin-bottom: -20px !important;  /* Adjust this value as needed */
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 import streamlit as st
 
 st.set_page_config(
@@ -164,7 +174,7 @@ try:
     ).add_to(m)
 
     folium.LayerControl().add_to(m)
-    st_folium(m, width=1400, height=800)  # ➔ Big wide map
+    st_folium(m, width=1400, height=600)  # ➔ Big wide map
 
 except Exception as e:
     st.error(f"Map error: {e}")
