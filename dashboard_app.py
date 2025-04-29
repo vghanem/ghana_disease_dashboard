@@ -168,10 +168,14 @@ try:
 
 except Exception as e:
     st.error(f"Map error: {e}")
-# Force a smaller vertical space
-space = st.empty()
-space.write("")  # Adds minimal vertical gap (very tight)
-
+# Add CSS to reduce vertical gaps
+st.markdown("""
+<style>
+    div[data-testid="stVerticalBlock"] div[style*="flex-direction: column;"] div[data-testid="stVerticalBlock"] {
+        gap: 0.2rem;
+    }
+</style>
+""", unsafe_allow_html=True)
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
 if selected_diseases and not df_single.empty:
