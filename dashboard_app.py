@@ -173,25 +173,24 @@ with st.container():
                 sticky=True
             )
         ).add_to(m)
-
+        
         folium.LayerControl().add_to(m)
 
         st_folium(m, width=1400, height=600)
 
-        st.markdown(
-            """
+        # Remove extra vertical space between map and next section
+        st.markdown("""
             <style>
-                iframe[title="streamlit_folium.st_folium"] {
-                    margin-bottom: -50px !important;
-                }
+            iframe[title="streamlit_folium.st_folium"] {
+                margin-bottom: -60px;
+            }
             </style>
-            """,
-            unsafe_allow_html=True
-        )
+        """, unsafe_allow_html=True)
 
     except Exception as e:
         st.error(f"Map error: {e}")
 
+    # Section divider
     st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
