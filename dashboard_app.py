@@ -198,21 +198,36 @@ st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 st.subheader("3. Behavioral & Demographic Correlation")
 
 if selected_diseases and not df_single.empty:
-    selected_var = st.selectbox("Choose variable", 
-                               ['education_access_index','condom_use_rate',
-                                'urbanization_level','hiv_awareness_index',
-                                'youth_unemployment_rate'])
-    fig2 = px.scatter(df_single, x=selected_var, y=selected_diseases[0], color='region')
+    selected_var = st.selectbox(
+        "Choose a behavioral or demographic variable:",
+        [
+            'education_access_index',
+            'condom_use_rate',
+            'urbanization_level',
+            'hiv_awareness_index',
+            'youth_unemployment_rate'
+        ]
+    )
+
+    fig2 = px.scatter(
+        df_single,
+        x=selected_var,
+        y=selected_diseases[0],
+        color='region',
+        title=f"{selected_diseases[0].replace('_', ' ').title()} vs {selected_var.replace('_', ' ').title()}"
+    )
+
     fig2.update_layout(
-    font=dict(family="Arial", size=14, color="white"),
-    legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
-    plot_bgcolor="#0E1117",
-    paper_bgcolor="#0E1117"
-)
+        font=dict(family="Arial", size=14, color="white"),
+        legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
+        plot_bgcolor="#0E1117",
+        paper_bgcolor="#0E1117"
+    )
 
     st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.warning("Select a disease and ensure data is available.")
+    st.warning("Please select a disease and ensure data is available for the selected date.")
+
 
 # --- SECTION 4: Correlation Heatmap ---
 st.subheader("4. Correlation Heatmap of Key Predictors")
