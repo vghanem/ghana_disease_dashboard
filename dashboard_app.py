@@ -5,19 +5,6 @@ st.set_page_config(
     layout="wide",  # Force full screen width
     initial_sidebar_state="expanded"
 )
-# --- GLOBAL SPACING STYLING ---
-st.markdown("""
-    <style>
-    h2 {
-        margin-top: 2rem !important;
-        margin-bottom: 1.2rem !important;
-    }
-    .element-container {
-        margin-bottom: 2rem;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 import pandas as pd
 import geopandas as gpd
 import plotly.express as px
