@@ -330,6 +330,18 @@ except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
 
 # --- FOOTER ---
+st.markdown(
+    """
+    <style>
+        /* Reduce vertical spacing between sections */
+        div[data-testid="stVerticalBlock"] > div {
+            margin-bottom: 1rem;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.markdown("---")
 st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
 st.markdown("🌐[Website](https://www.valentineghanem.com")
