@@ -372,7 +372,7 @@ except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
 
 # --- FOOTER ---
-st.markdown("--")
+st.markdown("---")
 st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
 st.markdown("🌐[Website](https://www.valentineghanem.com")
 st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
