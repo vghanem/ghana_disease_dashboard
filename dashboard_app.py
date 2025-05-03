@@ -290,7 +290,10 @@ if not metrics_df.empty:
             yaxis_title="Models",
             coloraxis_colorbar=dict(title="Score"),
             xaxis=dict(side="top", tickangle=45),
-            yaxis=dict(autorange="reversed")
+            yaxis=dict(autorange="reversed"),
+            font=dict(family="Arial", size=14, color="white"),
+            plot_bgcolor="#0E1117",
+            paper_bgcolor="#0E1117"
         )
 
         st.plotly_chart(fig_perf, use_container_width=True)
@@ -299,105 +302,7 @@ if not metrics_df.empty:
         st.error(f"Failed to plot model performance heatmap: {e}")
 else:
     st.warning("Model performance data not available.")
- # Final Fine-Tuned Radar Chart
 
-import plotly.graph_objects as go
-
-st.subheader("7.1 Interactive Model Performance Radar Chart (Scaled and Corrected)")
-
-# Model options
-model_options = ['All Models', 'Random Forest', 'XGBoost', 'Ridge Regression', 'Support Vector Regression (SVR)']
-
-# Dropdown for model selection
-selected_model = st.selectbox(
-    "Select a model to visualize:",
-    model_options,
-    index=0,
-    key="model_selectbox"  # Unique key to avoid duplication
-)
-
-# Radar chart categories
-categories = ['R²', 'RMSE', 'MAE', 'MAPE']
-
-# Final real model scores (from Table 10 of your work)
-model_scores = {
-    'Random Forest': [0.9821, 6.39, 4.64, 2.56],
-    'XGBoost': [0.9813, 6.54, 4.77, 2.64],
-    'Ridge Regression': [0.9640, 9.08, 6.69, 3.69],
-    'Support Vector Regression (SVR)': [0.9686, 8.47, 5.90, 3.17]
-}
-
-# Define expected maximum errors for scaling
-max_rmse = 10  # Max expected RMSE value
-max_mae = 10   # Max expected MAE value
-max_mape = 10  # Max expected MAPE (%) value
-
-# Scale the model scores: R² stays the same, errors are inverted and scaled
-model_scores_scaled = {
-    model: [
-        scores[0],  # R² (no scaling needed)
-        1 - (scores[1] / max_rmse),  # RMSE scaled
-        1 - (scores[2] / max_mae),   # MAE scaled
-        1 - (scores[3] / max_mape)   # MAPE scaled
-    ]
-    for model, scores in model_scores.items()
-}
-
-# Define consistent colors for each model
-model_colors = {
-    'Random Forest': 'dodgerblue',
-    'XGBoost': 'lightcoral',
-    'Ridge Regression': 'deepskyblue',
-    'Support Vector Regression (SVR)': 'red'
-}
-
-# Create radar chart figure
-fig = go.Figure()
-
-# Plot based on model selection
-if selected_model == 'All Models':
-    for model_name, scores in model_scores_scaled.items():
-        fig.add_trace(go.Scatterpolar(
-            r=scores,
-            theta=categories,
-            fill='toself',
-            name=model_name,
-            line=dict(color=model_colors[model_name]),
-            opacity=0.5
-        ))
-else:
-    fig.add_trace(go.Scatterpolar(
-        r=model_scores_scaled[selected_model],
-        theta=categories,
-        fill='toself',
-        name=selected_model,
-        line=dict(color=model_colors[selected_model]),
-        opacity=0.5
-    ))
-
-# Update layout for better appearance
-fig.update_layout(
-    polar=dict(
-        radialaxis=dict(
-            visible=True,
-            range=[0, 1],
-            showticklabels=True,
-            tickvals=[i/10 for i in range(11)],
-            tickfont=dict(size=12, color='black', family='Arial'),
-            gridcolor='lightgrey',
-            gridwidth=1
-        ),
-    ),
-    showlegend=True,
-    title="Interactive Model Performance Radar Chart (Scaled and Corrected)",
-    width=900,
-    height=800,
-    margin=dict(l=50, r=50, t=80, b=50),
-)
-
-# Display the radar chart
-st.plotly_chart(fig, use_container_width=True)
-st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
