@@ -10,18 +10,7 @@ from PIL import Image
 # Load and display the logo in the sidebar
 logo = Image.open("image_1.png")
 st.sidebar.image(logo, use_container_width=True)
-st.markdown("""
-    <style>
-    .stMultiSelect > div > div > div {
-        border-radius: 10px;
-        padding: 5px;
-        background-color: #1E1E1E;
-    }
-    .stCheckbox {
-        font-weight: bold;
-    }
-    </style>
-""", unsafe_allow_html=True)
+
 import pandas as pd
 import geopandas as gpd
 import plotly.express as px
