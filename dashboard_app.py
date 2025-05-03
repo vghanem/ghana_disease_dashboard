@@ -176,7 +176,7 @@ with st.container():
 
         folium.LayerControl().add_to(m)
 
-               st_folium(m, width=1400, height=600)
+        st_folium(m, width=1400, height=600)
 
         st.markdown(
             """
