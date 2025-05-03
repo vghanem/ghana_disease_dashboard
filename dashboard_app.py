@@ -336,30 +336,4 @@ st.markdown("🌐[Website](https://www.valentineghanem.com")
 st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
 st.markdown("[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)")
 
-# --- GLOBAL CUSTOM STYLING (SIDEBAR + SPACING) ---
-st.markdown("""
-    <style>
-    /* Sidebar widgets */
-    section[data-testid="stSidebar"] .stMultiSelect > div > div > div {
-        border-radius: 10px;
-        padding: 5px;
-        background-color: #1E1E1E;
-    }
-    section[data-testid="stSidebar"] .stCheckbox {
-        font-weight: bold;
-    }
-
-    /* Reduce vertical gap between blocks globally */
-    div[data-testid="stVerticalBlock"] div[style*="flex-direction: column;"] div[data-testid="stVerticalBlock"] {
-        gap: 0.2rem !important;
-    }
-
-    /* Fine-tune folium map spacing */
-    iframe[title="streamlit_folium.st_folium"] {
-        margin-bottom: -20px !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-
 
