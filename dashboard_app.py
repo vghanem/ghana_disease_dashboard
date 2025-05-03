@@ -86,22 +86,19 @@ if not df_single.empty:
 # --- HEADER ---
 from PIL import Image
 
-# Load Ghana flag image
-logo = Image.open("ghana_health_logo.png")  # Replace if using a different image
+# Load logo
+logo = Image.open("ghana_health_logo.png")  # Replace with your flag/logo image
 
-# Create two columns with better vertical alignment
-col1, col2 = st.columns([1, 12])
-
-with col1:
-    st.image(logo, width=60)
-
-with col2:
-    st.markdown("""
-        <div style='display: flex; flex-direction: column; justify-content: center; height: 100%; padding-top: 10px;'>
-            <h1 style='color:#CE1126; font-size: 36px; margin-bottom: 0;'>Ghana Infectious Disease Trends Dashboard</h1>
-            <h4 style='color:#FFD700; margin-top: 5px;'>Machine Learning-Powered Epidemiology | <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>
+# Create a centered horizontal block using HTML & Flexbox
+st.markdown(f"""
+    <div style='display: flex; align-items: center; gap: 20px;'>
+        <img src='ghana_health_logo.png' width='60' style='margin-right:10px;'/>
+        <div>
+            <h1 style='margin: 0; color:#CE1126;'>Ghana Infectious Disease Trends Dashboard</h1>
+            <h4 style='margin: 5px 0; color:#FFD700;'>Machine Learning-Powered Epidemiology | <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>
         </div>
-    """, unsafe_allow_html=True)
+    </div>
+""", unsafe_allow_html=True)
 
 # --- SECTION 1: Time Series ---
 st.subheader("1. National Disease Trends Over Time")
