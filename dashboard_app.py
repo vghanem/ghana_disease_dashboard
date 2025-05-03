@@ -370,7 +370,6 @@ try:
     st.plotly_chart(fig_hiv, use_container_width=True)
 except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
-st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
