@@ -408,7 +408,16 @@ try:
     fig_hiv = px.imshow(heatmap_pivot, labels=dict(x="Date", y="Region", color="HIV Incidence"),
                         aspect='auto', color_continuous_scale='Viridis',
                         title="Granular View: Monthly HIV Incidence by Region (1970–2020)")
-    fig_hiv.update_layout(width=1000, height=700, xaxis=dict(tickangle=-45, nticks=25), yaxis=dict(autorange="reversed"))
+    fig_hiv.update_layout(
+    width=1000,
+    height=700,
+    xaxis=dict(tickangle=-45, nticks=25),
+    yaxis=dict(autorange="reversed"),
+    font=dict(family="Arial", size=14, color="white"),
+    plot_bgcolor="#0E1117",
+    paper_bgcolor="#0E1117"
+)
+
     st.plotly_chart(fig_hiv, use_container_width=True)
 except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
