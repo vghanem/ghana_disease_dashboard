@@ -192,6 +192,8 @@ with st.container():
     except Exception as e:
         st.error(f"Map error: {e}")
 
+    st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
+
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
 
