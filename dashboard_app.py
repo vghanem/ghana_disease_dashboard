@@ -330,6 +330,11 @@ except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
 
 # --- FOOTER ---
+st.markdown("---")
+st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
+st.markdown("🌐[Website](https://www.valentineghanem.com")
+st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
+st.markdown("[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)")
 st.markdown(
     """
     <style>
@@ -342,10 +347,5 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-st.markdown("---")
-st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
-st.markdown("🌐[Website](https://www.valentineghanem.com")
-st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
-st.markdown("[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)")
 
 
