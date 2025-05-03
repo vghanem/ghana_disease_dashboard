@@ -165,6 +165,13 @@ try:
 
     folium.LayerControl().add_to(m)
     st_folium(m, width=1400, height=600)  # ➔ Big wide map
+    st.markdown("""
+<style>
+iframe {
+    margin-bottom: -30px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"Map error: {e}")
