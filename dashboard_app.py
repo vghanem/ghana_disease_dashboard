@@ -93,6 +93,7 @@ else:
     fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
     fig1.update_layout(width=1400, height=600, xaxis=dict(tickangle=-45))
     st.plotly_chart(fig1, use_container_width=True)
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 
@@ -176,6 +177,8 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
+
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
 if selected_diseases and not df_single.empty:
@@ -187,6 +190,7 @@ if selected_diseases and not df_single.empty:
     st.plotly_chart(fig2, use_container_width=True)
 else:
     st.warning("Select a disease and ensure data is available.")
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 4: Correlation Heatmap ---
 st.subheader("4. Correlation Heatmap of Key Predictors")
@@ -205,6 +209,7 @@ fig.update_layout(width=1400, height=700, xaxis_title="Variables", yaxis_title="
 fig.update_xaxes(tickangle=45)
 fig.update_traces(hoverongaps=False)
 st.plotly_chart(fig, use_container_width=True)
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 5: Forecasts ---
 st.subheader("5. Disease Incidence Forecasts (2030)")
@@ -220,10 +225,12 @@ if not forecast_df.empty:
         st.warning("No predicted incidence column found in forecast dataset.")
 else:
     st.warning("Forecast data not available.")
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 6: Model Performance Table ---
 st.subheader("6. Model Performance Summary")
 st.dataframe(metrics_df, use_container_width=True)
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 7: Interactive Model Performance Heatmap ---
 st.subheader("7. Interactive Model Performance Heatmap")
@@ -353,10 +360,7 @@ fig.update_layout(
 
 # Display the radar chart
 st.plotly_chart(fig, use_container_width=True)
-
-
-
-
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 8: Granular HIV Trends by Region Over Time ---
 st.subheader("8. Granular HIV Trends by Region Over Time")
@@ -371,6 +375,7 @@ try:
     st.plotly_chart(fig_hiv, use_container_width=True)
 except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- FOOTER ---
 st.markdown("---")
