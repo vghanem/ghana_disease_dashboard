@@ -283,7 +283,7 @@ if not metrics_df.empty:
             title="Model Performance Heatmap"
         )
 
-      fig_perf.update_layout (
+fig_perf.update_layout(
     width=800,
     height=600,
     xaxis_title="Metrics",
