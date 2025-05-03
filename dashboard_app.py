@@ -223,8 +223,17 @@ corr = df[numeric_cols].corr()
 fig = px.imshow(corr, text_auto=True, aspect='auto', color_continuous_scale='RdBu_r',
                 range_color=(-1, 1), labels=dict(color="Correlation"),
                 title="Correlation Heatmap: Health Indicators & Disease Incidence")
-fig.update_layout(width=1400, height=700, xaxis_title="Variables", yaxis_title="Variables",
-                  coloraxis_colorbar=dict(title="Correlation", thickness=25, len=0.75, yanchor="top", y=0.9))
+fig.update_layout(
+    width=1400,
+    height=700,
+    xaxis_title="Variables",
+    yaxis_title="Variables",
+    coloraxis_colorbar=dict(title="Correlation", thickness=25, len=0.75, yanchor="top", y=0.9),
+    font=dict(family="Arial", size=14, color="white"),
+    plot_bgcolor="#0E1117",
+    paper_bgcolor="#0E1117"
+)
+
 fig.update_xaxes(tickangle=45)
 fig.update_traces(hoverongaps=False)
 st.plotly_chart(fig, use_container_width=True)
