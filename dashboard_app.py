@@ -346,17 +346,18 @@ except Exception as e:
     st.error(f"Failed to generate HIV heatmap: {e}")
 
 # --- FOOTER ---
-st.markdown("---")
-st.markdown("🌐 Developed by Valentine Ghanem | MSc Public Health & Data Science")
-st.markdown("🌐[Website](https://www.valentineghanem.com")
-st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
-st.markdown("[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)")
 st.markdown("""
 ---
 <p style="text-align: center; font-size: 14px; color: grey;">
 Developed by <strong>Valentine Ghanem</strong> | 
 <a href="https://www.valentineghanem.com" target="_blank" style="color:#F63366;">Website</a> |
-<a href="https://www.linkedin.com/in/valentineghanem/" target="_blank" style="color:#F63366;">LinkedIn</a>
+<a href="https://www.linkedin.com/in/valentineghanem/" target="_blank" style="color:#F63366;">LinkedIn</a> |
+<a href="https://doi.org/10.5281/zenodo.15292209" target="_blank" style="color:#F63366;">DOI: 10.5281/zenodo.15292209</a>
+</p>
+<p style="text-align: center;">
+<a href="https://doi.org/10.5281/zenodo.15292209" target="_blank">
+<img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg" alt="DOI Badge">
+</a>
 </p>
 """, unsafe_allow_html=True)
 
