@@ -283,23 +283,24 @@ if not metrics_df.empty:
             title="Model Performance Heatmap"
         )
 
-fig_perf.update_layout(
-    width=800,
-    height=600,
-    xaxis_title="Metrics",
-    yaxis_title="Models",
-    coloraxis_colorbar=dict(title="Score"),
-    xaxis=dict(side="top", tickangle=45),
-    yaxis=dict(autorange="reversed"),
-    font=dict(family="Arial", size=14, color="white"),
-    plot_bgcolor="#0E1117",
-    paper_bgcolor="#0E1117"
-)
+        fig_perf.update_layout(
+            width=800,
+            height=600,
+            xaxis_title="Metrics",
+            yaxis_title="Models",
+            coloraxis_colorbar=dict(title="Score"),
+            xaxis=dict(side="top", tickangle=45),
+            yaxis=dict(autorange="reversed"),
+            font=dict(family="Arial", size=14, color="white"),
+            plot_bgcolor="#0E1117",
+            paper_bgcolor="#0E1117"
+        )
 
         st.plotly_chart(fig_perf, use_container_width=True)
 
     except Exception as e:
         st.error(f"Failed to plot model performance heatmap: {e}")
+
 else:
     st.warning("Model performance data not available.")
  # Final Fine-Tuned Radar Chart
