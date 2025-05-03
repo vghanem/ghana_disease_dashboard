@@ -84,9 +84,8 @@ if not df_single.empty:
     df_single = df_single[df_single['date'].dt.date == selected_date]
 
 # --- HEADER ---
-st.markdown("<h1 style='color:#F63366; font-size: 42px;'> Ghana Infectious Disease Trends Dashboard</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='color:#FAFAFA;'>Machine Learning-Powered Epidemiology | <span style='color:#FFD700;'>HIV/AIDS Focus</span></h4>", unsafe_allow_html=True)
-st.markdown("<hr style='margin: 10px 0;'>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:#CE1126; font-size: 40px;'>🇬🇭 Ghana Infectious Disease Trends Dashboard</h1>", unsafe_allow_html=True)
+st.markdown("<h4 style='color:#FFD700;'>Machine Learning-Powered Epidemiology | <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>", unsafe_allow_html=True)
 
 # --- SECTION 1: Time Series ---
 st.subheader("1. National Disease Trends Over Time")
