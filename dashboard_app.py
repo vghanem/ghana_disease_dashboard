@@ -84,14 +84,18 @@ if not df_single.empty:
     df_single = df_single[df_single['date'].dt.date == selected_date]
 
 # --- HEADER ---
-st.markdown("""
-    <h1 style='font-size: 40px; display: flex; align-items: center; gap: 10px;'>
-        <img src='ghana_health_logo.png' width='35' style='margin-bottom:-6px;'/> 
-        <span style='color:#CE1126;'>Ghana Infectious Disease Trends Dashboard</span>
-    </h1>
-""", unsafe_allow_html=True)
+from PIL import Image
 
-st.markdown("<h4 style='color:#FFD700;'>Machine Learning-Powered Epidemiology | <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>", unsafe_allow_html=True)
+# Load the logo
+logo = Image.open("ghana_health_logo.png")  # Ensure this is in your root project folder
+
+# Create two columns: logo | title
+col1, col2 = st.columns([1, 9])
+with col1:
+    st.image(logo, width=50)
+with col2:
+    st.markdown("<h1 style='color:#CE1126; font-size: 38px;'>Ghana Infectious Disease Trends Dashboard</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='color:#FFD700;'>Machine Learning-Powered Epidemiology | <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>", unsafe_allow_html=True)
 
 # --- SECTION 1: Time Series ---
 st.subheader("1. National Disease Trends Over Time")
