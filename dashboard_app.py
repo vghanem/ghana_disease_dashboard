@@ -168,17 +168,16 @@ with st.container():
 
         st_folium(m, width=1400, height=600)
 
-        # Custom CSS to adjust spacing around the map
-          st.markdown(
-         """
-         <style>
-             iframe[title="streamlit_folium.st_folium"] {
-                 margin-bottom: -50px !important;
-             }
-         </style>
-         """,
-         unsafe_allow_html=True
-     )
+        st.markdown(
+            """
+            <style>
+                iframe[title="streamlit_folium.st_folium"] {
+                    margin-bottom: -50px !important;
+                }
+            </style>
+            """,
+            unsafe_allow_html=True
+        )
 
     except Exception as e:
         st.error(f"Map error: {e}")
