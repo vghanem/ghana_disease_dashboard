@@ -8,7 +8,7 @@ st.set_page_config(
 from PIL import Image
 
 # Load and display the logo in the sidebar
-logo = Image.open("image_1.png")
+logo = Image.open("ghana_health_logo.png")
 st.sidebar.image(logo, use_container_width=True)
 
 import pandas as pd
