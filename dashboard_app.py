@@ -86,7 +86,7 @@ if not df_single.empty:
 # --- HEADER ---
 st.markdown("""
     <h1 style='font-size: 40px; display: flex; align-items: center; gap: 10px;'>
-        <img src='ghana_flag.png' width='35' style='margin-bottom:-6px;'/> 
+        <img src='ghana_health_logo.png' width='35' style='margin-bottom:-6px;'/> 
         <span style='color:#CE1126;'>Ghana Infectious Disease Trends Dashboard</span>
     </h1>
 """, unsafe_allow_html=True)
