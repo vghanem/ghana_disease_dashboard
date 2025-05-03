@@ -247,7 +247,16 @@ if not forecast_df.empty:
     if y_col:
         fig5 = px.bar(forecast_df, x='region', y=y_col[0], color='region',
                      barmode='group', title='Projected 2030 Disease Incidence by Region')
-        fig5.update_layout(xaxis_title='Region', yaxis_title='Predicted Incidence Rate', xaxis_tickangle=-45)
+        fig5.update_layout(
+    xaxis_title='Region',
+    yaxis_title='Predicted Incidence Rate',
+    xaxis_tickangle=-45,
+    font=dict(family="Arial", size=14, color="white"),
+    legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
+    plot_bgcolor="#0E1117",
+    paper_bgcolor="#0E1117"
+)
+
         st.plotly_chart(fig5, use_container_width=True)
     else:
         st.warning("No predicted incidence column found in forecast dataset.")
