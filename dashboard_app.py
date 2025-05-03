@@ -386,3 +386,19 @@ st.markdown("🌐[Website](https://www.valentineghanem.com")
 st.markdown("🌐[LinkedIn](https://www.linkedin.com/in/valentineghanem/")
 st.markdown("[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg)](https://doi.org/10.5281/zenodo.15292209)")
 
+# Apply scoped sidebar styling at the end to avoid layout issues
+st.markdown("""
+    <style>
+    section[data-testid="stSidebar"] .stMultiSelect > div > div > div {
+        border-radius: 10px;
+        padding: 5px;
+        background-color: #1E1E1E;
+    }
+
+    section[data-testid="stSidebar"] .stCheckbox {
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+
