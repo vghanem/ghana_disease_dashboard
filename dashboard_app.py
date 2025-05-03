@@ -182,7 +182,7 @@ with st.container():
             """
             <style>
                 iframe[title="streamlit_folium.st_folium"] {
-                    margin-bottom: -50px !important;
+                    margin-bottom: 10px !important;
                 }
             </style>
             """,
