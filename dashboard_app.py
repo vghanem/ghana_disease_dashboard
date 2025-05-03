@@ -9,7 +9,7 @@ from PIL import Image
 
 # Load and display the logo in the sidebar
 logo = Image.open("image_1.png")
-st.sidebar.image(logo, use_column_width=True)
+st.sidebar.image(logo, use_container_width=True)
 import pandas as pd
 import geopandas as gpd
 import plotly.express as px
