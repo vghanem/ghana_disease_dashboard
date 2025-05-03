@@ -11,6 +11,22 @@ from PIL import Image
 logo = Image.open("image_1.png")
 st.sidebar.image(logo, use_container_width=True)
 
+# Scoped Sidebar Styling: Multiselect & Checkbox only in sidebar
+st.markdown("""
+    <style>
+    /* Target only multiselects and checkboxes inside the sidebar */
+    section[data-testid="stSidebar"] .stMultiSelect > div > div > div {
+        border-radius: 10px;
+        padding: 5px;
+        background-color: #1E1E1E;
+    }
+
+    section[data-testid="stSidebar"] .stCheckbox {
+        font-weight: bold;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 import pandas as pd
 import geopandas as gpd
 import plotly.express as px
