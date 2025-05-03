@@ -350,5 +350,13 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+    <style>
+    div[data-testid="stVerticalBlock"] div[style*="flex-direction: column;"] div[data-testid="stVerticalBlock"] {
+        gap: 0.3rem !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 
 
