@@ -375,6 +375,10 @@ Developed by <strong>Valentine Ghanem</strong> | 🇬🇭 <br>
 <a href="https://doi.org/10.5281/zenodo.15292209" target="_blank">
 <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg" alt="DOI Badge">
 </a>
+</p>
+""", unsafe_allow_html=True)
+
+# --- GLOBAL SPACING FIX FOR FOLIUM MAP ---
 st.markdown("""
     <style>
     iframe[title="streamlit_folium.st_folium"] {
