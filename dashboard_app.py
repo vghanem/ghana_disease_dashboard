@@ -110,47 +110,48 @@ if not df_single.empty:
     df_single = df_single[df_single['date'].dt.date == selected_date]
 
 # --- HEADER ---
-# --- HEADER (Fixed Layout) ---
-from PIL import Image
+import base64
 
-# Load Ghana Health logo
-logo = Image.open("ghana_health_logo.png")
+# Load and encode the logo
+with open("5569c276-5982-4eec-8027-10cadafd8744.png", "rb") as image_file:
+    encoded_logo = base64.b64encode(image_file.read()).decode()
 
-# Header container with centered layout
-st.markdown("""
+# Centered header with embedded image
+st.markdown(f"""
     <style>
-    .dashboard-header-container {
+    .dashboard-header-container {{
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         margin-bottom: 10px;
-    }
-    .dashboard-header-container img {
+    }}
+    .dashboard-header-container img {{
         width: 70px;
         margin-bottom: 5px;
-    }
-    .dashboard-header h1 {
+    }}
+    .dashboard-header h1 {{
         font-size: 40px;
         margin: 0;
         color: #CE1126;
-    }
-    .dashboard-header h4 {
+    }}
+    .dashboard-header h4 {{
         font-size: 20px;
         margin: 0;
         color: #FFD700;
-    }
-    .dashboard-header span {
+    }}
+    .dashboard-header span {{
         color: #21BF73;
-    }
+    }}
     </style>
     <div class="dashboard-header-container">
-        <img src="ghana_health_logo.png" alt="Logo">
+        <img src="data:image/png;base64,{encoded_logo}" alt="Logo">
         <div class='dashboard-header'>
             <h1>Ghana Infectious Disease Trends Dashboard</h1>
             <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- SECTION 1: Fixed Chart Rendering ---
 st.subheader("1. National Disease Trends Over Time")
