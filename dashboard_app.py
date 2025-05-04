@@ -370,8 +370,8 @@ st.markdown("""
 ---
 <p style="text-align: center; font-size: 14px; color: grey;">
 Developed by <strong>Valentine Ghanem</strong> | 🇬🇭 <br>
-<a href="https://www.valentineghanem.com" target="_blank" style="color:#FFD700;">Visit My Website</a> |
-<a href="https://www.linkedin.com/in/valentineghanem/" target="_blank" style="color:#21BF73;">LinkedIn</a> |
+<a href="https://www.valentineghanem.com" target="_blank" style="color:#F63366;">Visit My Website</a> |
+<a href="https://www.linkedin.com/in/valentineghanem/" target="_blank" style="color:#F63366;">LinkedIn</a> |
 <a href="https://doi.org/10.5281/zenodo.15292209" target="_blank" style="color:#F63366;">DOI: 10.5281/zenodo.15292209</a>
 </p>
 <p style="text-align: center;">
