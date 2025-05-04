@@ -193,7 +193,7 @@ try:
         )
     ).add_to(m)
 
-        st_folium(m, width=1400, height=600)
+    st_folium(m, width=1400, height=600)
 
 except Exception as e:
     st.error(f"Map error: {e}")
