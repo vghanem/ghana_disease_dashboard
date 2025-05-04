@@ -116,17 +116,14 @@ from PIL import Image
 logo = Image.open("ghana_health_logo.png")
 
 # Header container with centered layout
-st.markdown("""
+st.markdown(
+    """
     <style>
     .dashboard-header-container {
         display: flex;
         flex-direction: column;
         align-items: center;
         margin-bottom: 10px;
-    }
-    .dashboard-header-container img {
-        width: 70px;
-        margin-bottom: 5px;
     }
     .dashboard-header h1 {
         font-size: 40px;
@@ -143,13 +140,17 @@ st.markdown("""
     }
     </style>
     <div class="dashboard-header-container">
-        <img src="ghana_health_logo.png" alt="Logo">
         <div class='dashboard-header'>
             <h1>Ghana Infectious Disease Trends Dashboard</h1>
             <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
         </div>
     </div>
-    """, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
+
+# Display the logo
+st.image(logo, width=70)
 
 # --- SECTION 1: Fixed Chart Rendering ---
 st.subheader("1. National Disease Trends Over Time")
