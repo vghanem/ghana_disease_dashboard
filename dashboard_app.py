@@ -209,15 +209,34 @@ try:
         )
     ).add_to(m)
     
-    # Reduce map height and add line break
-    st_folium(m, width=1400, height=400)
-    st.write("")
+    # Wrap the map in a container with reduced padding
+    with st.container():
+        st_folium(m, width=1400, height=450)
 
 except Exception as e:
     st.error(f"Map error: {e}")
 
+# Add custom CSS to minimize spacing
+st.markdown(
+    """
+    <style>
+        .element-container {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .stFolium {
+            margin-bottom: 0 !important;
+        }
+        .subheader {
+            margin-top: 0 !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- SECTION 3: Behavioral & Demographic Correlation ---
-st.markdown("<h3 style='margin-top: 0;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top: 5px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
 
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox(
