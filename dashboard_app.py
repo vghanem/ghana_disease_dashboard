@@ -121,14 +121,9 @@ st.markdown(
     <style>
     .dashboard-header-container {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        margin-bottom: 20px;
-    }
-    .logo-container {
-        margin-right: 20px;
-    }
-    .logo-container img {
-        width: 70px;
+        margin-bottom: 10px;
     }
     .dashboard-header h1 {
         font-size: 40px;
@@ -137,7 +132,7 @@ st.markdown(
     }
     .dashboard-header h4 {
         font-size: 20px;
-        margin: 5px 0 0 0;
+        margin: 0;
         color: #FFD700;
     }
     .dashboard-header span {
@@ -145,17 +140,17 @@ st.markdown(
     }
     </style>
     <div class="dashboard-header-container">
-        <div class="logo-container">
-            <img src="data:image/png;base64,{}" alt="Logo">
-        </div>
         <div class='dashboard-header'>
             <h1>Ghana Infectious Disease Trends Dashboard</h1>
             <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
         </div>
     </div>
-    """.format(logo.to_bytes().decode()),
+    """,
     unsafe_allow_html=True
 )
+
+# Display the logo
+st.image(logo, width=70)
 
 # --- SECTION 1: Fixed Chart Rendering ---
 st.subheader("1. National Disease Trends Over Time")
