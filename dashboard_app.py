@@ -155,6 +155,26 @@ with col2:
         """,
         unsafe_allow_html=True
     )
+    # --- SECTION 1: Time Series ---
+st.subheader("1. National Disease Trends Over Time")
+if not selected_diseases:
+    st.warning("Please select at least one disease to display trends.")
+elif df_time.empty:
+    st.warning("No data available for selected filters.")
+else:
+    fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
+    fig1.update_layout(
+    width=1400,
+    height=600,
+    xaxis=dict(tickangle=-45),
+    font=dict(family="Arial", size=14, color="white"),
+    legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
+    plot_bgcolor="#0E1117",
+    paper_bgcolor="#0E1117"
+)
+
+    st.plotly_chart(fig1, use_container_width=True)
+st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
