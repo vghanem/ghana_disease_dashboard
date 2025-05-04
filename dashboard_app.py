@@ -388,6 +388,3 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
-
-</p>
-""", unsafe_allow_html=True)
