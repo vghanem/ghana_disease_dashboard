@@ -372,17 +372,3 @@ Developed by <strong>Valentine Ghanem</strong> | 🇬🇭 <br>
 </a>
 </p>
 """, unsafe_allow_html=True)
-
-# --- GLOBAL SPACING FIX FOR FOLIUM MAP ---
-st.markdown("""
-    <style>
-    iframe[title="streamlit_folium.st_folium"] {
-        margin-bottom: 0px !important;
-        margin-top: 0px !important;
-    }
-    section.main > div { 
-        padding-top: 1rem !important; 
-        padding-bottom: 0rem !important; 
-    }
-    </style>
-""", unsafe_allow_html=True)
