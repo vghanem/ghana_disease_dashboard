@@ -112,48 +112,53 @@ if not df_single.empty:
 # --- HEADER ---
 from PIL import Image
 import streamlit as st
+import base64
+from io import BytesIO
 
-# Load the Ghana logo
-logo = Image.open("ghana_health_logo.png")
+# Load and convert logo image to base64 string
+def get_base64_image(image_path):
+    with open(image_path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
 
-# Create a tighter custom header layout
-st.markdown("""
+# Path to Ghana logo
+logo_base64 = get_base64_image("ghana_health_logo.png")
+
+# Inject custom HTML + CSS
+st.markdown(f"""
 <style>
-.custom-header {
+.header-container {{
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 15px;
     margin-bottom: 5px;
-}
-.custom-header img {
-    height: 40px;
-    margin-top: -2px;
-}
-.custom-header-text h1 {
-    font-size: 28px;
+    margin-top: -10px;
+}}
+.header-text h1 {{
+    font-size: 30px;
+    margin: 0;
     color: #CE1126;
-    margin: 0;
     line-height: 1.2;
-}
-.custom-header-text h4 {
+}}
+.header-text h4 {{
     font-size: 16px;
-    color: #FFD700;
     margin: 0;
+    color: #FFD700;
     line-height: 1.2;
-}
-.custom-header-text h4 span {
+}}
+.header-text span {{
     color: #21BF73;
-}
+}}
 </style>
-<div class='custom-header'>
-    <img src='data:image/png;base64,{}' />
-    <div class='custom-header-text'>
+
+<div class="header-container">
+    <img src="data:image/png;base64,{logo_base64}" width="40">
+    <div class="header-text">
         <h1>Ghana Infectious Disease Trends Dashboard</h1>
         <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
     </div>
 </div>
-""".format(st.image(logo, use_column_width=False).image_to_bytes().decode("utf-8")),
-unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
