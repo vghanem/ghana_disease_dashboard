@@ -137,72 +137,86 @@ with col2:
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
-st.markdown("### Select Disease to Display on the Map")
-map_disease_option = st.selectbox(
-    "Choose disease prevalence for map shading (affects only map):",
-    options=['hiv_incidence', 'malaria_incidence', 'tb_incidence'],
-    index=0
-)
+with st.container():
+    st.markdown("### Select Disease to Display on the Map")
 
-try:
-    latest = df.copy()
-    latest['region'] = latest['region'].str.strip().str.title()
-
-    gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
-    gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
-    gdf['shapeName'] = gdf['shapeName'].replace({'Brong Ahafo': 'Brong-Ahafo'})
-
-    latest_filtered = latest.sort_values('date').groupby('region').last().reset_index()
-
-    merged = gdf.merge(
-        latest_filtered, how='left',
-        left_on='shapeName',
-        right_on='region'
+    map_disease_option = st.selectbox(
+        "Choose disease prevalence for map shading (affects only map):",
+        options=['hiv_incidence', 'malaria_incidence', 'tb_incidence'],
+        index=0,
+        key="map_disease_option"
     )
 
-    if 'date' in merged.columns:
-        merged = merged.drop(columns=['date'])
+    # Optional: Inject map styling fix
+    st.markdown("""
+    <style>
+        iframe[title="streamlit_folium.st_folium"] {
+            height: 500px !important;
+            width: 100% !important;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # Dynamic color scale
-    color_scale = {
-        'hiv_incidence': 'Reds',
-        'malaria_incidence': 'Greens',
-        'tb_incidence': 'Blues'
-    }.get(map_disease_option, 'YlOrRd')
+    try:
+        latest = df.copy()
+        latest['region'] = latest['region'].str.strip().str.title()
 
-    m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
+        gdf = gpd.read_file("GHA_10regions_merged_final.geojson")
+        gdf['shapeName'] = gdf['shapeName'].str.replace(' Region', '', case=False).str.strip().str.title()
+        gdf['shapeName'] = gdf['shapeName'].replace({'Brong Ahafo': 'Brong-Ahafo'})
 
-    folium.Choropleth(
-        geo_data=json.loads(merged.to_json()),
-        data=merged,
-        columns=['shapeName', map_disease_option],
-        key_on='feature.properties.shapeName',
-        fill_color=color_scale,
-        fill_opacity=0.8,
-        line_opacity=0.2,
-        nan_fill_color='white',
-        legend_name=f"{map_disease_option.replace('_', ' ').title()} per 100k",
-        highlight=True,
-        line_color='black'
-    ).add_to(m)
+        latest_filtered = latest.sort_values('date').groupby('region').last().reset_index()
 
-    folium.GeoJson(
-        merged,
-        style_function=lambda x: {'fillColor': '#ffffff', 'color': 'black', 'fillOpacity': 0, 'weight': 1},
-        highlight_function=lambda x: {'fillColor': '#000000', 'color': '#000000', 'fillOpacity': 0.5, 'weight': 3},
-        tooltip=folium.features.GeoJsonTooltip(
-            fields=['shapeName', map_disease_option],
-            aliases=['Region:', f'{map_disease_option.replace("_", " ").title()}:'],
-            localize=True,
-            sticky=True
+        merged = gdf.merge(
+            latest_filtered, how='left',
+            left_on='shapeName',
+            right_on='region'
         )
-    ).add_to(m)
 
-    # Display the map with specified height and full width
-    st_folium(m, width=1400, height=500)
+        if 'date' in merged.columns:
+            merged = merged.drop(columns=['date'])
 
-except Exception as e:
-    st.error(f"Map error: {e}")
+        # Color scale
+        color_scale = {
+            'hiv_incidence': 'Reds',
+            'malaria_incidence': 'Greens',
+            'tb_incidence': 'Blues'
+        }.get(map_disease_option, 'YlOrRd')
+
+        m = folium.Map(location=[7.9465, -1.0232], zoom_start=6, tiles="CartoDB positron")
+
+        folium.Choropleth(
+            geo_data=json.loads(merged.to_json()),
+            data=merged,
+            columns=['shapeName', map_disease_option],
+            key_on='feature.properties.shapeName',
+            fill_color=color_scale,
+            fill_opacity=0.8,
+            line_opacity=0.2,
+            nan_fill_color='white',
+            legend_name=f"{map_disease_option.replace('_', ' ').title()} per 100k",
+            highlight=True,
+            line_color='black'
+        ).add_to(m)
+
+        folium.GeoJson(
+            merged,
+            style_function=lambda x: {'fillColor': '#ffffff', 'color': 'black', 'fillOpacity': 0, 'weight': 1},
+            highlight_function=lambda x: {'fillColor': '#000000', 'color': '#000000', 'fillOpacity': 0.5, 'weight': 3},
+            tooltip=folium.features.GeoJsonTooltip(
+                fields=['shapeName', map_disease_option],
+                aliases=['Region:', f'{map_disease_option.replace("_", " ").title()}:'],
+                localize=True,
+                sticky=True
+            )
+        ).add_to(m)
+
+        st_folium(m, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"Map error: {e}")
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.markdown("<h3 style='margin-top: 5px; margin-bottom: 10px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
