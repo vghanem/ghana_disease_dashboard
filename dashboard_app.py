@@ -113,26 +113,25 @@ if not df_single.empty:
 from PIL import Image
 import streamlit as st
 
-# Load the image
-logo = Image.open("ghana_health_logo.png")  # Make sure this file exists in your app directory
+# Load the Ghana logo
+logo = Image.open("ghana_health_logo.png")
 
-# Create columns for layout
-col1, col2 = st.columns([1, 10])
-
-with col1:
-    st.image(logo, width=65)
-
-with col2:
-    st.markdown(
-        """
-        <div style='display: flex; flex-direction: column; justify-content: center;'>
-            <h1 style='margin: 0; color:#CE1126;'>Ghana Infectious Disease Trends Dashboard</h1>
-            <h4 style='margin: 0; color:#FFD700;'>Machine Learning-Powered Epidemiology |
-            <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+# Custom header with tight vertical layout
+with st.container():
+    col1, col2 = st.columns([1, 10])
+    with col1:
+        st.image(logo, width=45)  # Reduced width to avoid stretching
+    with col2:
+        st.markdown(
+            """
+            <div style='line-height: 1.1; padding-top: 5px;'>
+                <h1 style='margin: 0; color:#CE1126; font-size: 32px;'>Ghana Infectious Disease Trends Dashboard</h1>
+                <h4 style='margin: 0; color:#FFD700; font-size: 18px;'>Machine Learning-Powered Epidemiology | 
+                <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
