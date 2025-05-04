@@ -194,17 +194,8 @@ try:
     ).add_to(m)
     st_folium(m, width=1400, height=600)
 
-    # Add a controlled spacer to collapse extra white space
-    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-
 except Exception as e:
     st.error(f"Map error: {e}")
-
-# Force layout reflow between sections
-st.markdown("<div style='clear: both;'></div>", unsafe_allow_html=True)
-
-# Divider
-st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.subheader("3. Behavioral & Demographic Correlation")
@@ -239,7 +230,6 @@ if selected_diseases and not df_single.empty:
     st.plotly_chart(fig2, use_container_width=True)
 else:
     st.warning("Please select a disease and ensure data is available for the selected date.")
-
 
 # --- SECTION 4: Correlation Heatmap ---
 st.subheader("4. Correlation Heatmap of Key Predictors")
