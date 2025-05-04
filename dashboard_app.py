@@ -216,8 +216,23 @@ try:
 except Exception as e:
     st.error(f"Map error: {e}")
 
+# Add custom CSS to minimize spacing
+st.markdown(
+    """
+    <style>
+        .stFolium {
+            margin-bottom: 0px !important;
+        }
+        .element-container {
+            margin-bottom: 0px !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- SECTION 3: Behavioral & Demographic Correlation ---
-st.markdown("<h3 style='margin-top: 10px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top: 0px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
 
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox(
