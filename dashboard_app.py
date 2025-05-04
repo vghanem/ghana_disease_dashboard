@@ -112,53 +112,49 @@ if not df_single.empty:
 # --- HEADER ---
 from PIL import Image
 import streamlit as st
-import base64
-from io import BytesIO
 
-# Load and convert logo image to base64 string
-def get_base64_image(image_path):
-    with open(image_path, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
+# Load the Ghana Health logo
+logo = Image.open("ghana_health_logo.png")  # Ensure this file exists in your app directory
 
-# Path to Ghana logo
-logo_base64 = get_base64_image("ghana_health_logo.png")
+# Layout: two columns, one for logo, one for text
+col1, col2 = st.columns([1, 10])
 
-# Inject custom HTML + CSS
-st.markdown(f"""
-<style>
-.header-container {{
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 5px;
-    margin-top: -10px;
-}}
-.header-text h1 {{
-    font-size: 30px;
-    margin: 0;
-    color: #CE1126;
-    line-height: 1.2;
-}}
-.header-text h4 {{
-    font-size: 16px;
-    margin: 0;
-    color: #FFD700;
-    line-height: 1.2;
-}}
-.header-text span {{
-    color: #21BF73;
-}}
-</style>
+with col1:
+    st.image(logo, width=50)  # Slightly smaller for better alignment
 
-<div class="header-container">
-    <img src="data:image/png;base64,{logo_base64}" width="40">
-    <div class="header-text">
-        <h1>Ghana Infectious Disease Trends Dashboard</h1>
-        <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+with col2:
+    st.markdown(
+        """
+        <style>
+        .dashboard-header {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            line-height: 1.2;
+            margin-bottom: 10px;
+            margin-top: -10px;
+        }
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 30px;
+            color: #CE1126;
+        }
+        .dashboard-header h4 {
+            margin: 0;
+            font-size: 16px;
+            color: #FFD700;
+        }
+        .dashboard-header span {
+            color: #21BF73;
+        }
+        </style>
+        <div class='dashboard-header'>
+            <h1>Ghana Infectious Disease Trends Dashboard</h1>
+            <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
