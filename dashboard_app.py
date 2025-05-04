@@ -208,13 +208,16 @@ try:
             sticky=True
         )
     ).add_to(m)
-    st_folium(m, width=1400, height=550)  # Reduced height slightly
+    
+    # Use Streamlit's write function to control spacing
+    st.write("")
+    st_folium(m, width=1400, height=500)
 
 except Exception as e:
     st.error(f"Map error: {e}")
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
-st.subheader("3. Behavioral & Demographic Correlation")
+st.markdown("<h3 style='margin-top: 10px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
 
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox(
