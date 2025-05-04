@@ -135,7 +135,7 @@ with col2:
     )
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
-st.markdown("<h3 style='margin-top: 5px; margin-bottom: 10px;'>2. Regional Distribution Map (10 Original Regions)</h3>", unsafe_allow_html=True)
+st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
 st.markdown("### Select Disease to Display on the Map")
 map_disease_option = st.selectbox(
@@ -197,12 +197,9 @@ try:
             sticky=True
         )
     ).add_to(m)
-    
-    # Clear any existing cached data to ensure fresh render
-    st.cache_data.clear()
 
-    # Display the map with increased height and full width
-    st_folium(m, width=1400, height=550)
+    # Display the map with specified height and full width
+    st_folium(m, width=1400, height=500)
 
 except Exception as e:
     st.error(f"Map error: {e}")
