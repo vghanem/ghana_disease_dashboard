@@ -110,7 +110,6 @@ if not df_single.empty:
     df_single = df_single[df_single['date'].dt.date == selected_date]
 
 # --- HEADER ---
-# --- HEADER (Fixed Layout) ---
 from PIL import Image
 
 # Load Ghana Health logo
