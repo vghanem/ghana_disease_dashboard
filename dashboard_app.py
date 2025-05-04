@@ -1,9 +1,25 @@
 import streamlit as st
 
+# Set page configuration
 st.set_page_config(
     page_title="Ghana Infectious Disease Dashboard",
     layout="wide",  # Force full screen width
     initial_sidebar_state="expanded"
+)
+
+# Add custom CSS to minimize spacing
+st.markdown(
+    """
+    <style>
+        .stPlotlyChart, .stFolium {
+            margin-bottom: 0px !important;
+        }
+        .subheader {
+            margin-top: 15px !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 from PIL import Image
 
@@ -192,7 +208,7 @@ try:
             sticky=True
         )
     ).add_to(m)
-    st_folium(m, width=1400, height=600)
+    st_folium(m, width=1400, height=550)  # Reduced height slightly
 
 except Exception as e:
     st.error(f"Map error: {e}")
@@ -230,7 +246,6 @@ if selected_diseases and not df_single.empty:
     st.plotly_chart(fig2, use_container_width=True)
 else:
     st.warning("Please select a disease and ensure data is available for the selected date.")
-
 # --- SECTION 4: Correlation Heatmap ---
 st.subheader("4. Correlation Heatmap of Key Predictors")
 numeric_cols = ['hiv_incidence', 'malaria_incidence', 'tb_incidence', 
