@@ -116,22 +116,44 @@ import streamlit as st
 # Load the Ghana logo
 logo = Image.open("ghana_health_logo.png")
 
-# Custom header with tight vertical layout
-with st.container():
-    col1, col2 = st.columns([1, 10])
-    with col1:
-        st.image(logo, width=45)  # Reduced width to avoid stretching
-    with col2:
-        st.markdown(
-            """
-            <div style='line-height: 1.1; padding-top: 5px;'>
-                <h1 style='margin: 0; color:#CE1126; font-size: 32px;'>Ghana Infectious Disease Trends Dashboard</h1>
-                <h4 style='margin: 0; color:#FFD700; font-size: 18px;'>Machine Learning-Powered Epidemiology | 
-                <span style='color:#21BF73;'>HIV/AIDS Focus</span></h4>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+# Create a tighter custom header layout
+st.markdown("""
+<style>
+.custom-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 5px;
+}
+.custom-header img {
+    height: 40px;
+    margin-top: -2px;
+}
+.custom-header-text h1 {
+    font-size: 28px;
+    color: #CE1126;
+    margin: 0;
+    line-height: 1.2;
+}
+.custom-header-text h4 {
+    font-size: 16px;
+    color: #FFD700;
+    margin: 0;
+    line-height: 1.2;
+}
+.custom-header-text h4 span {
+    color: #21BF73;
+}
+</style>
+<div class='custom-header'>
+    <img src='data:image/png;base64,{}' />
+    <div class='custom-header-text'>
+        <h1>Ghana Infectious Disease Trends Dashboard</h1>
+        <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
+    </div>
+</div>
+""".format(st.image(logo, use_column_width=False).image_to_bytes().decode("utf-8")),
+unsafe_allow_html=True)
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
