@@ -192,8 +192,18 @@ try:
             sticky=True
         )
     ).add_to(m)
-
     st_folium(m, width=1400, height=600)
+
+    # ✅ FIX: Collapse extra space below folium map
+# st.markdown("""
+#     <style>
+#     iframe[title="streamlit_folium.st_folium"] {
+#         display: block;
+#         margin-bottom: -60px;
+#         margin-top: -20px;
+#     }
+#     </style>
+# """, unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"Map error: {e}")
