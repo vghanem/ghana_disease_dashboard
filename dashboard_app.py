@@ -110,72 +110,70 @@ if not df_single.empty:
     df_single = df_single[df_single['date'].dt.date == selected_date]
 
 # --- HEADER ---
-# --- HEADER ---
+# --- HEADER (Fixed Layout) ---
 from PIL import Image
-import streamlit as st
 
-# Load the Ghana Health logo
-logo = Image.open("ghana_health_logo.png")  # Ensure this file exists in your app directory
+# Load Ghana Health logo
+logo = Image.open("ghana_health_logo.png")
 
-# Layout: two columns, one for logo, one for text
-col1, col2 = st.columns([1, 10])
-
-with col1:
-    st.image(logo, width=50)  # Slightly smaller for better alignment
-
-with col2:
-    st.markdown(
-        """
-        <style>
-        .dashboard-header {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            line-height: 1.2;
-            margin-bottom: 10px;
-            margin-top: -10px;
-        }
-        .dashboard-header h1 {
-            margin: 0;
-            font-size: 30px;
-            color: #CE1126;
-        }
-        .dashboard-header h4 {
-            margin: 0;
-            font-size: 16px;
-            color: #FFD700;
-        }
-        .dashboard-header span {
-            color: #21BF73;
-        }
-        </style>
+# Header container with centered layout
+st.markdown("""
+    <style>
+    .dashboard-header-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .dashboard-header-container img {
+        width: 70px;
+        margin-bottom: 5px;
+    }
+    .dashboard-header h1 {
+        font-size: 40px;
+        margin: 0;
+        color: #CE1126;
+    }
+    .dashboard-header h4 {
+        font-size: 20px;
+        margin: 0;
+        color: #FFD700;
+    }
+    .dashboard-header span {
+        color: #21BF73;
+    }
+    </style>
+    <div class="dashboard-header-container">
+        <img src="ghana_health_logo.png" alt="Logo">
         <div class='dashboard-header'>
             <h1>Ghana Infectious Disease Trends Dashboard</h1>
             <h4>Machine Learning-Powered Epidemiology | <span>HIV/AIDS Focus</span></h4>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    </div>
+    """, unsafe_allow_html=True)
 
-# --- SECTION 1: Time Series ---
+# --- SECTION 1: Fixed Chart Rendering ---
 st.subheader("1. National Disease Trends Over Time")
 
 if not selected_diseases:
     st.warning("Please select at least one disease to display trends.")
 elif df_time.empty:
-    st.warning("No data available for selected filters.")
+    st.warning("No data available for the selected filters.")
 else:
-    fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-    fig1.update_layout(
-        width=1400,
-        height=600,
-        xaxis=dict(tickangle=-45),
-        font=dict(family="Arial", size=14, color="white"),
-        legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
-        plot_bgcolor="#0E1117",
-        paper_bgcolor="#0E1117"
-    )
-    st.plotly_chart(fig1, use_container_width=True)
+    try:
+        fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
+        fig1.update_layout(
+            width=1400,
+            height=600,
+            xaxis=dict(tickangle=-45),
+            font=dict(family="Arial", size=14, color="white"),
+            legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
+            plot_bgcolor="#0E1117",
+            paper_bgcolor="#0E1117"
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+    except Exception as e:
+        st.error(f"Error rendering chart: {e}")
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
