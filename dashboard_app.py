@@ -194,21 +194,16 @@ try:
     ).add_to(m)
     st_folium(m, width=1400, height=600)
 
-    # ✅ FIX: Collapse extra space below folium map
-# st.markdown("""
-#     <style>
-#     iframe[title="streamlit_folium.st_folium"] {
-#         display: block;
-#         margin-bottom: -60px;
-#         margin-top: -20px;
-#     }
-#     </style>
-# """, unsafe_allow_html=True)
+    # Add a controlled spacer to collapse extra white space
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 except Exception as e:
     st.error(f"Map error: {e}")
 
-# Divider (optional)
+# Force layout reflow between sections
+st.markdown("<div style='clear: both;'></div>", unsafe_allow_html=True)
+
+# Divider
 st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
