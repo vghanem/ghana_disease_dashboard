@@ -14,13 +14,23 @@ st.markdown(
         .stPlotlyChart, .stFolium {
             margin-bottom: 0px !important;
         }
-        .subheader {
-            margin-top: 15px !important;
+        .subheader, h3, h2, h1 {
+            margin-top: 5px !important;
+            margin-bottom: 10px !important;
+        }
+        hr {
+            margin-top: 10px !important;
+            margin-bottom: 10px !important;
+        }
+        .block-container {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
         }
     </style>
     """,
     unsafe_allow_html=True,
 )
+
 from PIL import Image
 
 # Load and display the logo in the sidebar
