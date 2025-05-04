@@ -197,18 +197,7 @@ try:
 
     st_folium(m, width=1400, height=600)
 
-    # ✅ FIX: Collapse extra space below folium map
-    st.markdown("""
-        <style>
-        iframe[title="streamlit_folium.st_folium"] {
-            display: block;
-            margin-bottom: -60px;
-            margin-top: -20px;
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-except Exception as e:
+  except Exception as e:
     st.error(f"Map error: {e}")
 
 # Divider (optional)
@@ -378,5 +367,19 @@ Developed by <strong>Valentine Ghanem</strong> | 🇬🇭 <br>
 <a href="https://doi.org/10.5281/zenodo.15292209" target="_blank">
 <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15292209.svg" alt="DOI Badge">
 </a>
+# --- GLOBAL SPACING FIX ---
+st.markdown("""
+    <style>
+    iframe[title="streamlit_folium.st_folium"] {
+        margin-bottom: 0px !important;
+        margin-top: 0px !important;
+    }
+    section.main > div { 
+        padding-top: 1rem !important; 
+        padding-bottom: 0rem !important; 
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 </p>
 """, unsafe_allow_html=True)
