@@ -124,27 +124,6 @@ with col2:
         unsafe_allow_html=True
     )
 
-# --- SECTION 1: Time Series ---
-st.subheader("1. National Disease Trends Over Time")
-if not selected_diseases:
-    st.warning("Please select at least one disease to display trends.")
-elif df_time.empty:
-    st.warning("No data available for selected filters.")
-else:
-    fig1 = px.line(df_time, x='date', y=selected_diseases, color='region')
-    fig1.update_layout(
-    width=1400,
-    height=600,
-    xaxis=dict(tickangle=-45),
-    font=dict(family="Arial", size=14, color="white"),
-    legend=dict(orientation="v", bgcolor="rgba(0,0,0,0.5)", font=dict(size=12)),
-    plot_bgcolor="#0E1117",
-    paper_bgcolor="#0E1117"
-)
-
-    st.plotly_chart(fig1, use_container_width=True)
-st.markdown("""<hr style='margin: 30px 0;'>""", unsafe_allow_html=True)
-
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
 st.subheader("2. Regional Distribution Map (10 Original Regions)")
 
@@ -209,31 +188,14 @@ try:
         )
     ).add_to(m)
     
-    # Wrap the map in a container with reduced padding
-    with st.container():
-        st_folium(m, width=1400, height=450)
+    # Clear any existing cached data to ensure fresh render
+    st.cache_data.clear()
+
+    # Display the map with increased height and full width
+    st_folium(m, width=1400, height=550)
 
 except Exception as e:
     st.error(f"Map error: {e}")
-
-# Add custom CSS to minimize spacing
-st.markdown(
-    """
-    <style>
-        .element-container {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        .stFolium {
-            margin-bottom: 0 !important;
-        }
-        .subheader {
-            margin-top: 0 !important;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
 st.markdown("<h3 style='margin-top: 5px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
