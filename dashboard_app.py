@@ -135,7 +135,7 @@ with col2:
     )
 
 # --- SECTION 2: Regional Distribution Map (10 Original Regions) ---
-st.subheader("2. Regional Distribution Map (10 Original Regions)")
+st.markdown("<h3 style='margin-top: 5px; margin-bottom: 10px;'>2. Regional Distribution Map (10 Original Regions)</h3>", unsafe_allow_html=True)
 
 st.markdown("### Select Disease to Display on the Map")
 map_disease_option = st.selectbox(
@@ -208,7 +208,7 @@ except Exception as e:
     st.error(f"Map error: {e}")
 
 # --- SECTION 3: Behavioral & Demographic Correlation ---
-st.markdown("<h3 style='margin-top: 0;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='margin-top: 5px; margin-bottom: 10px;'>3. Behavioral & Demographic Correlation</h3>", unsafe_allow_html=True)
 
 if selected_diseases and not df_single.empty:
     selected_var = st.selectbox(
